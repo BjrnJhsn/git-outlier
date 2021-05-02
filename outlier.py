@@ -64,9 +64,9 @@ if __name__ == "__main__":
             maxChurn = value["Churn"]
         if value["Complexity"] > maxComplexity:
             maxComplexity = value["Complexity"]
-    max_yval = 20
+    max_yval = 25
     discretization_yval = 1 / max_yval
-    max_xval = 40
+    max_xval = 70
     discretization_xval = 1 / max_xval
 
     points_to_plot = dict()
