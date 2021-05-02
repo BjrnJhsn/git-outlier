@@ -1,0 +1,12 @@
+action: my_env, msg: envreport
+cwd: /home/sssbjz/PycharmProjects/pythonProject
+cmd: /home/sssbjz/PycharmProjects/pythonProject/.tox/my_env/bin/python -m pip freeze
+attrs==20.3.0
+iniconfig==1.1.1
+lizard==1.17.7
+packaging==20.9
+pluggy==0.13.1
+py==1.10.0
+pyparsing==2.4.7
+pytest==6.2.3
+toml==0.10.2
