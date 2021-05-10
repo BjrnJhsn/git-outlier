@@ -1,6 +1,33 @@
 #!/usr/bin/env python3
 
 import lizard
+import subprocess
+
+
+def get_git_log_in_current_directory():
+    PIPE = subprocess.PIPE
+    branch = "my_branch"
+
+    # git log --numstat --pretty="" --no-merges
+    #
+    # NB
+    # NB The git call below has some problem with the pretty flag, do not know why. Quotation mark problem probably
+    # NB
+
+    process = subprocess.Popen(
+        ["git", "log", "--numstat", "--no-merges", '--pretty=""'],
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+    stdoutput, stderroutput = process.communicate()
+
+    # if 'fatal' in stdoutput:
+    #
+    #   # Handle error case
+    #   print("Git problem, exiting...")
+    #   exit(1)
+
+    return stdoutput
 
 
 def get_file_name_from_git_log_line(line):
@@ -79,6 +106,8 @@ def main():
     i = lizard.analyze_file("outlier.py")
     print(i.__dict__)
 
+    # git log --numstat --pretty="" --no-merges > conan_git_log_output.txt
+
     f = open("conan_git_log_output.txt", "r")
     for line in f:
         print(line)
@@ -120,13 +149,16 @@ def main():
         "\n\n***************************************************\n\nChurn vs Complexity diagram \n"
     )
 
-    print(get_diagram_output(points_to_plot, max_x_output, max_y_output, "Churn", "Complexity"))
+    print(
+        get_diagram_output(
+            points_to_plot, max_x_output, max_y_output, "Churn", "Complexity"
+        )
+    )
     # See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+    print(get_git_log_in_current_directory())
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == "__main__":
     main()
-
-
-# git log --numstat --pretty="" --no-merges > conan_git_log_output.txt
