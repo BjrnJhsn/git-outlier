@@ -30,11 +30,52 @@ def ordered_list_with_files(dictionary_file_name_occurence):
     )
 
 
-# git log --numstat --pretty="" --no-merges > conan_git_log_output.txt
+def get_diagram_output(points_to_plot, max_xval, max_yval, x_axis, y_axis):
+    output = ""
+    output = output + x_axis + "\n"
+    for y_val in range(max_yval, -1, -1):
+        output = output + "|"
+        if points_to_plot[y_val] is not None:
+            for x_val in range(0, max_xval + 1, 1):
+                if x_val in points_to_plot[y_val]:
+                    output = output + "X"
+                else:
+                    output = output + " "
+        output = output + "\n"
+    for x_val in range(0, max_xval + 1, 1):
+        output = output + "-"
+    output = output + y_axis
+    return output
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == "__main__":
+def prepare_plot_data(
+    data, x_label="Complexity", y_label="Churn", max_x_output=70, max_y_output=25
+):
+    y_max = 0
+    x_max = 0
+    for value in data.values():
+        if value[y_label] > y_max:
+            y_max = value[y_label]
+        if value[x_label] > x_max:
+            x_max = value[x_label]
+
+    points_to_plot = dict()
+    for y_val in range(max_y_output, -1, -1):
+        points_to_plot[y_val] = None
+    for value in data.values():
+        discretized_yval = round(value[y_label] / y_max * max_y_output)
+        discretized_xval = round(value[x_label] / x_max * max_x_output)
+        if points_to_plot[discretized_yval] is None:
+            points_to_plot[discretized_yval] = [discretized_xval]
+        else:
+            points_to_plot[discretized_yval] = [
+                points_to_plot[discretized_yval],
+                discretized_xval,
+            ]
+    return points_to_plot
+
+
+def main():
     i = lizard.analyze_file("outlier.py")
     print(i.__dict__)
 
@@ -66,48 +107,26 @@ if __name__ == "__main__":
     print(data)
     print(data["filename"]["Churn"])
 
-    maxChurn = 0
-    maxComplexity = 0
-    for value in data.values():
-        if value["Churn"] > maxChurn:
-            maxChurn = value["Churn"]
-        if value["Complexity"] > maxComplexity:
-            maxComplexity = value["Complexity"]
-    max_yval = 25
-    discretization_yval = 1 / max_yval
-    max_xval = 70
-    discretization_xval = 1 / max_xval
+    x_label = "Complexity"
+    y_label = "Churn"
+    max_x_output = 70
+    max_y_output = 25
+    points_to_plot = prepare_plot_data(
+        data, x_label, y_label, max_x_output, max_y_output
+    )
 
-    points_to_plot = dict()
-    for y_val in range(max_yval, -1, -1):
-        points_to_plot[y_val] = None
-
-    for value in data.values():
-        discreatized_yval = round(value["Churn"] / maxChurn * max_yval)
-        discreatized_xval = round(value["Complexity"] / maxComplexity * max_xval)
-        if points_to_plot[discreatized_yval] is None:
-            points_to_plot[discreatized_yval] = [discreatized_xval]
-        else:
-            points_to_plot[discreatized_yval] = [
-                points_to_plot[discreatized_yval],
-                discreatized_xval,
-            ]
     print(points_to_plot)
     print(
         "\n\n***************************************************\n\nChurn vs Complexity diagram \n"
     )
-    print("Churn")
-    for y_val in range(max_yval, -1, -1):
-        print("|", end="")
-        if points_to_plot[y_val] is not None:
-            for x_val in range(0, max_xval + 1, 1):
-                if x_val in points_to_plot[y_val]:
-                    print("X", end="")
-                else:
-                    print(" ", end="")
-        print("")
 
-    for x_val in range(0, max_xval + 1, 1):
-        print("-", end="")
-    print(" Complexity")
+    print(get_diagram_output(points_to_plot, max_x_output, max_y_output, "Churn", "Complexity"))
     # See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+
+# Press the green button in the gutter to run the script.
+if __name__ == "__main__":
+    main()
+
+
+# git log --numstat --pretty="" --no-merges > conan_git_log_output.txt
