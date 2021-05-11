@@ -2,22 +2,18 @@
 
 import lizard
 import subprocess
-
+import os
 
 def get_git_log_in_current_directory():
     PIPE = subprocess.PIPE
     branch = "my_branch"
 
     # git log --numstat --pretty="" --no-merges
-    #
-    # NB
-    # NB The git call below has some problem with the pretty flag, do not know why. Quotation mark problem probably
-    # NB
-
     process = subprocess.Popen(
-        ["git", "log", "--numstat", "--no-merges", '--pretty=""'],
+        ["git", "log", "--numstat", "--no-merges", "--pretty="],
         stdout=PIPE,
         stderr=PIPE,
+        text=True
     )
     stdoutput, stderroutput = process.communicate()
 
@@ -42,10 +38,11 @@ def get_file_occurences_from_git_log(log):
     file_occurences = {}
     for line in log.splitlines():
         file_name = get_file_name_from_git_log_line(line)
-        if file_name in file_occurences:
-            file_occurences[file_name] += 1
-        else:
-            file_occurences[file_name] = 1
+        if file_name != "":
+            if file_name in file_occurences:
+                file_occurences[file_name] += 1
+            else:
+                file_occurences[file_name] = 1
     return file_occurences
 
 
@@ -101,10 +98,23 @@ def prepare_plot_data(
             ]
     return points_to_plot
 
+def keep_only_files_with_correct_ending(list, ending):
+    output_list = []
+    for item in list:
+        filename, file_extension = os.path.splitext(item[0])
+        if file_extension == ending:
+            output_list.append(item)
+    return output_list
+
+def get_complexity_for_file_list(list):
+    print("Hello")
+    # bla
 
 def main():
     i = lizard.analyze_file("outlier.py")
     print(i.__dict__)
+    for function in i.__dict__["function_list"]:
+        print(function.__dict__)
 
     # git log --numstat --pretty="" --no-merges > conan_git_log_output.txt
 
@@ -114,15 +124,16 @@ def main():
 
     f.close()
     f = open("conan_git_log_output.txt", "r")
-    all_of_it = f.read()
+    all_of_it = get_git_log_in_current_directory() # f.read()
     file_occurence = get_file_occurences_from_git_log(all_of_it)
+
     print(ordered_list_with_files(file_occurence))
 
     top_churners = 10
     print("The top " + str(top_churners) + " files with churn in descending order:")
-    ordered_list = ordered_list_with_files(file_occurence)
+    cleaned_ordered_list_with_files = keep_only_files_with_correct_ending(ordered_list_with_files(file_occurence),".py")
     print(f"Changes Filenames")
-    for items in ordered_list_with_files(file_occurence)[0:top_churners]:
+    for items in  cleaned_ordered_list_with_files[0:top_churners]:
         print(f"{str(items[1]):8}{items[0]:10}")
 
     data = {
@@ -156,7 +167,7 @@ def main():
     )
     # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
-    print(get_git_log_in_current_directory())
+
 
 
 # Press the green button in the gutter to run the script.
