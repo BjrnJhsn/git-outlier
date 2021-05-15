@@ -4,6 +4,7 @@ import lizard
 import subprocess
 import os
 
+
 def get_git_log_in_current_directory():
     PIPE = subprocess.PIPE
     branch = "my_branch"
@@ -13,7 +14,7 @@ def get_git_log_in_current_directory():
         ["git", "log", "--numstat", "--no-merges", "--pretty="],
         stdout=PIPE,
         stderr=PIPE,
-        text=True
+        text=True,
     )
     stdoutput, stderroutput = process.communicate()
 
@@ -94,14 +95,14 @@ def prepare_plot_data(
         if points_to_plot[discretized_yval] is None:
             points_to_plot[discretized_yval] = [discretized_xval]
         else:
-            #points_to_plot[discretized_yval] = [
+            # points_to_plot[discretized_yval] = [
             #    points_to_plot[discretized_yval],
             #    discretized_xval,
-            #]
-            points_to_plot[discretized_yval].append(
-                discretized_xval)
+            # ]
+            points_to_plot[discretized_yval].append(discretized_xval)
 
     return points_to_plot
+
 
 def keep_only_files_with_correct_ending(list, ending):
     output_list = []
@@ -114,29 +115,36 @@ def keep_only_files_with_correct_ending(list, ending):
             output_list.append(item)
     return output_list
 
+
 def get_complexity_for_file_list(list):
     complexity = {}
     for file_name in list:
         complexity[file_name] = run_analyzer_on_file(file_name).CCN
     return complexity
 
+
 def run_analyzer_on_file(file_name):
     return lizard.analyze_file(file_name)
+
 
 def combine_churn_and_complexity(file_occurence, complexity, filtered_file_names):
     result = {}
     for file_name in filtered_file_names:
         if file_name in file_occurence and file_name in complexity:
-            result[file_name] = {"Churn": file_occurence[file_name], "Complexity": complexity[file_name]}
+            result[file_name] = {
+                "Churn": file_occurence[file_name],
+                "Complexity": complexity[file_name],
+            }
     return result
+
 
 def main():
     startup_path = os.getcwd()
     os.chdir(os.path.expanduser("~/sources/github/conan"))
 
-    #i = lizard.analyze_file("outlier.py")
-    #print(i.__dict__)
-    #for function in i.__dict__["function_list"]:
+    # i = lizard.analyze_file("outlier.py")
+    # print(i.__dict__)
+    # for function in i.__dict__["function_list"]:
     #    print(function.__dict__)
 
     # git log --numstat --pretty="" --no-merges > conan_git_log_output.txt
@@ -147,22 +155,25 @@ def main():
 
     f.close()
     f = open("conan_git_log_output.txt", "r")
-    all_of_it = get_git_log_in_current_directory() # f.read()
+    all_of_it = get_git_log_in_current_directory()  # f.read()
     file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
 
-    filtered_file_names = keep_only_files_with_correct_ending(file_names,".py")
+    filtered_file_names = keep_only_files_with_correct_ending(file_names, ".py")
     complexity = get_complexity_for_file_list(filtered_file_names[0:30])
 
-    result = combine_churn_and_complexity(file_occurence, complexity, filtered_file_names)
-
+    result = combine_churn_and_complexity(
+        file_occurence, complexity, filtered_file_names
+    )
 
     print(ordered_list_with_files(file_occurence))
 
     top_churners = 10
     print("The top " + str(top_churners) + " files with churn in descending order:")
-    cleaned_ordered_list_with_files = keep_only_files_with_correct_ending(ordered_list_with_files(file_occurence),".py")
+    cleaned_ordered_list_with_files = keep_only_files_with_correct_ending(
+        ordered_list_with_files(file_occurence), ".py"
+    )
     print(f"Changes Filenames")
-    for items in  cleaned_ordered_list_with_files[0:top_churners]:
+    for items in cleaned_ordered_list_with_files[0:top_churners]:
         print(f"{str(items[1]):8}{items[0]:10}")
 
     data = {
