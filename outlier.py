@@ -36,6 +36,7 @@ def get_file_name_from_git_log_line(line):
 
 def get_file_occurences_from_git_log(log):
     file_occurences = {}
+    file_names = []
     for line in log.splitlines():
         file_name = get_file_name_from_git_log_line(line)
         if file_name != "":
@@ -43,7 +44,8 @@ def get_file_occurences_from_git_log(log):
                 file_occurences[file_name] += 1
             else:
                 file_occurences[file_name] = 1
-    return file_occurences
+                file_names.append(file_name)
+    return file_occurences, file_names
 
 
 def ordered_list_with_files(dictionary_file_name_occurence):
@@ -92,29 +94,50 @@ def prepare_plot_data(
         if points_to_plot[discretized_yval] is None:
             points_to_plot[discretized_yval] = [discretized_xval]
         else:
-            points_to_plot[discretized_yval] = [
-                points_to_plot[discretized_yval],
-                discretized_xval,
-            ]
+            #points_to_plot[discretized_yval] = [
+            #    points_to_plot[discretized_yval],
+            #    discretized_xval,
+            #]
+            points_to_plot[discretized_yval].append(
+                discretized_xval)
+
     return points_to_plot
 
 def keep_only_files_with_correct_ending(list, ending):
     output_list = []
     for item in list:
-        filename, file_extension = os.path.splitext(item[0])
+        if type(item) is list or type(item) is tuple:
+            filename, file_extension = os.path.splitext(item[0])
+        else:
+            filename, file_extension = os.path.splitext(item)
         if file_extension == ending:
             output_list.append(item)
     return output_list
 
 def get_complexity_for_file_list(list):
-    print("Hello")
-    # bla
+    complexity = {}
+    for file_name in list:
+        complexity[file_name] = run_analyzer_on_file(file_name).CCN
+    return complexity
+
+def run_analyzer_on_file(file_name):
+    return lizard.analyze_file(file_name)
+
+def combine_churn_and_complexity(file_occurence, complexity, filtered_file_names):
+    result = {}
+    for file_name in filtered_file_names:
+        if file_name in file_occurence and file_name in complexity:
+            result[file_name] = {"Churn": file_occurence[file_name], "Complexity": complexity[file_name]}
+    return result
 
 def main():
-    i = lizard.analyze_file("outlier.py")
-    print(i.__dict__)
-    for function in i.__dict__["function_list"]:
-        print(function.__dict__)
+    startup_path = os.getcwd()
+    os.chdir(os.path.expanduser("~/sources/github/conan"))
+
+    #i = lizard.analyze_file("outlier.py")
+    #print(i.__dict__)
+    #for function in i.__dict__["function_list"]:
+    #    print(function.__dict__)
 
     # git log --numstat --pretty="" --no-merges > conan_git_log_output.txt
 
@@ -125,7 +148,13 @@ def main():
     f.close()
     f = open("conan_git_log_output.txt", "r")
     all_of_it = get_git_log_in_current_directory() # f.read()
-    file_occurence = get_file_occurences_from_git_log(all_of_it)
+    file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
+
+    filtered_file_names = keep_only_files_with_correct_ending(file_names,".py")
+    complexity = get_complexity_for_file_list(filtered_file_names[0:30])
+
+    result = combine_churn_and_complexity(file_occurence, complexity, filtered_file_names)
+
 
     print(ordered_list_with_files(file_occurence))
 
@@ -144,15 +173,15 @@ def main():
         "yada5": {"Churn": 15, "Complexity": 15},
         "yada20": {"Churn": 1, "Complexity": 1},
     }
-    print(data)
+    print(result)
     print(data["filename"]["Churn"])
 
     x_label = "Complexity"
     y_label = "Churn"
     max_x_output = 70
-    max_y_output = 25
+    max_y_output = 30
     points_to_plot = prepare_plot_data(
-        data, x_label, y_label, max_x_output, max_y_output
+        result, x_label, y_label, max_x_output, max_y_output
     )
 
     print(points_to_plot)
@@ -167,7 +196,7 @@ def main():
     )
     # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
-
+    os.chdir(startup_path)
 
 
 # Press the green button in the gutter to run the script.
