@@ -57,15 +57,17 @@ def ordered_list_with_files(dictionary_file_name_occurence):
     )
 
 
-def get_diagram_output(points_to_plot, max_xval, max_yval, x_axis, y_axis):
+def get_diagram_output(points_to_plot, outliers_to_plot, max_xval, max_yval, x_axis, y_axis):
     output = ""
     output = output + x_axis + "\n"
     for y_val in range(max_yval, -1, -1):
         output = output + "|"
-        if points_to_plot[y_val] is not None:
+        if points_to_plot[y_val] or outliers_to_plot[y_val] is not None:
             for x_val in range(0, max_xval + 1, 1):
-                if x_val in points_to_plot[y_val]:
+                if points_to_plot[y_val] is not None and x_val in points_to_plot[y_val]:
                     output = output + "X"
+                elif outliers_to_plot[y_val] is not None and x_val in outliers_to_plot[y_val]:
+                    output = output + "O"
                 else:
                     output = output + " "
         output = output + "\n"
@@ -87,21 +89,30 @@ def prepare_plot_data(
             x_max = value[x_label]
 
     points_to_plot = dict()
+    outliers_to_plot = dict()
+    outliers = dict()
     for y_val in range(max_y_output, -1, -1):
         points_to_plot[y_val] = None
-    for value in data.values():
+        outliers_to_plot[y_val] = None
+    for file_name, value in data.items():
         discretized_yval = round(value[y_label] / y_max * max_y_output)
         discretized_xval = round(value[x_label] / x_max * max_x_output)
-        if points_to_plot[discretized_yval] is None:
-            points_to_plot[discretized_yval] = [discretized_xval]
+        outlier = discretized_xval>max_x_output/2 and discretized_yval>max_y_output/2
+        if outlier:
+            outliers[file_name] = value
+            if outliers_to_plot[discretized_yval] is None:
+                outliers_to_plot[discretized_yval] = [discretized_xval]
+            else:
+                if discretized_xval not in outliers_to_plot[discretized_yval]:
+                    outliers_to_plot[discretized_yval].append(discretized_xval)
         else:
-            # points_to_plot[discretized_yval] = [
-            #    points_to_plot[discretized_yval],
-            #    discretized_xval,
-            # ]
-            points_to_plot[discretized_yval].append(discretized_xval)
+            if points_to_plot[discretized_yval] is None:
+                points_to_plot[discretized_yval] = [discretized_xval]
+            else:
+                if discretized_xval not in points_to_plot[discretized_yval]:
+                    points_to_plot[discretized_yval].append(discretized_xval)
 
-    return points_to_plot
+    return points_to_plot, outliers_to_plot, outliers
 
 
 def keep_only_files_with_correct_ending(list, ending):
@@ -137,6 +148,17 @@ def combine_churn_and_complexity(file_occurence, complexity, filtered_file_names
             }
     return result
 
+def get_outliers_output(outliers):
+    output = ""
+    for key in outliers:
+        output = output + key + "\n"
+    return output
+
+def print_big_separator():
+    print("*********************************************************************************************")
+
+def print_small_separator():
+    print("*********************************************************************************************")
 
 def main():
     startup_path = os.getcwd()
@@ -189,9 +211,9 @@ def main():
 
     x_label = "Complexity"
     y_label = "Churn"
-    max_x_output = 70
-    max_y_output = 30
-    points_to_plot = prepare_plot_data(
+    max_x_output = 60
+    max_y_output = 20
+    points_to_plot, outliers_to_plot, outliers = prepare_plot_data(
         result, x_label, y_label, max_x_output, max_y_output
     )
 
@@ -201,11 +223,12 @@ def main():
     )
 
     print(
-        get_diagram_output(
-            points_to_plot, max_x_output, max_y_output, "Churn", "Complexity"
-        )
+        get_diagram_output(points_to_plot, outliers_to_plot, max_x_output, max_y_output, "Churn", "Complexity")
     )
-    # See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+    print("\n\nDetected outliers:")
+    print(get_outliers_output(outliers))
+    print_big_separator()
 
     os.chdir(startup_path)
 
