@@ -57,7 +57,9 @@ def ordered_list_with_files(dictionary_file_name_occurence):
     )
 
 
-def get_diagram_output(points_to_plot, outliers_to_plot, max_xval, max_yval, x_axis, y_axis):
+def get_diagram_output(
+    points_to_plot, outliers_to_plot, max_xval, max_yval, x_axis, y_axis
+):
     output = ""
     output = output + x_axis + "\n"
     for y_val in range(max_yval, -1, -1):
@@ -66,7 +68,10 @@ def get_diagram_output(points_to_plot, outliers_to_plot, max_xval, max_yval, x_a
             for x_val in range(0, max_xval + 1, 1):
                 if points_to_plot[y_val] is not None and x_val in points_to_plot[y_val]:
                     output = output + "X"
-                elif outliers_to_plot[y_val] is not None and x_val in outliers_to_plot[y_val]:
+                elif (
+                    outliers_to_plot[y_val] is not None
+                    and x_val in outliers_to_plot[y_val]
+                ):
                     output = output + "O"
                 else:
                     output = output + " "
@@ -97,7 +102,9 @@ def prepare_plot_data(
     for file_name, value in data.items():
         discretized_yval = round(value[y_label] / y_max * max_y_output)
         discretized_xval = round(value[x_label] / x_max * max_x_output)
-        outlier = discretized_xval>max_x_output/2 and discretized_yval>max_y_output/2
+        outlier = (
+            discretized_xval > max_x_output / 2 and discretized_yval > max_y_output / 2
+        )
         if outlier:
             outliers[file_name] = value
             if outliers_to_plot[discretized_yval] is None:
@@ -148,25 +155,37 @@ def combine_churn_and_complexity(file_occurence, complexity, filtered_file_names
             }
     return result
 
+
 def get_outliers_output(outliers):
     output = ""
     for key in outliers:
         output = output + key + "\n"
     return output
 
+
 def print_headline(headline):
-    print("\n*********************************************************************************************")
+    print(
+        "\n*********************************************************************************************"
+    )
     print("*  " + headline)
-    print("*********************************************************************************************\n")
+    print(
+        "*********************************************************************************************\n"
+    )
+
 
 def print_subsection(subsection):
     print("\n-= " + subsection + " =-")
 
+
 def print_big_separator():
-    print("\n*********************************************************************************************\n")
+    print(
+        "\n*********************************************************************************************\n"
+    )
+
 
 def print_small_separator():
     print("\n****************************************************\n")
+
 
 def main():
     startup_path = os.getcwd()
@@ -182,11 +201,13 @@ def main():
         file_occurence, complexity, filtered_file_names
     )
 
-    #print(ordered_list_with_files(file_occurence))
+    # print(ordered_list_with_files(file_occurence))
 
     top_churners = 10
     print_headline("Churn outliers")
-    print_subsection("The top " + str(top_churners) + " files with churn in descending order:")
+    print_subsection(
+        "The top " + str(top_churners) + " files with churn in descending order:"
+    )
     cleaned_ordered_list_with_files = keep_only_files_with_correct_ending(
         ordered_list_with_files(file_occurence), ".py"
     )
@@ -212,17 +233,28 @@ def main():
     )
 
     print_headline("Complexity outliers")
-    print_subsection("The top " + str(top_churners) + " files with complexity in descending order:")
+    print_subsection(
+        "The top " + str(top_churners) + " files with complexity in descending order:"
+    )
     print("TBD!")
 
     print_headline("Churn vs complexity outliers")
-    print_subsection("Plot of churn vs complexity for all files. Outliers are marked with O")
-
-    print(
-        get_diagram_output(points_to_plot, outliers_to_plot, max_x_output, max_y_output, "Churn", "Complexity")
+    print_subsection(
+        "Plot of churn vs complexity for all files. Outliers are marked with O"
     )
 
-    print_subsection("Detected outliers (marked with O in the outlier plot)" )
+    print(
+        get_diagram_output(
+            points_to_plot,
+            outliers_to_plot,
+            max_x_output,
+            max_y_output,
+            "Churn",
+            "Complexity",
+        )
+    )
+
+    print_subsection("Detected outliers (marked with O in the outlier plot)")
     print(get_outliers_output(outliers))
     print_big_separator()
 
