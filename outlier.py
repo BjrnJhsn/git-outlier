@@ -154,30 +154,25 @@ def get_outliers_output(outliers):
         output = output + key + "\n"
     return output
 
+def print_headline(headline):
+    print("\n*********************************************************************************************")
+    print("*  " + headline)
+    print("*********************************************************************************************\n")
+
+def print_subsection(subsection):
+    print("\n-= " + subsection + " =-")
+
 def print_big_separator():
-    print("*********************************************************************************************")
+    print("\n*********************************************************************************************\n")
 
 def print_small_separator():
-    print("*********************************************************************************************")
+    print("\n****************************************************\n")
 
 def main():
     startup_path = os.getcwd()
     os.chdir(os.path.expanduser("~/sources/github/conan"))
 
-    # i = lizard.analyze_file("outlier.py")
-    # print(i.__dict__)
-    # for function in i.__dict__["function_list"]:
-    #    print(function.__dict__)
-
-    # git log --numstat --pretty="" --no-merges > conan_git_log_output.txt
-
-    f = open("conan_git_log_output.txt", "r")
-    for line in f:
-        print(line)
-
-    f.close()
-    f = open("conan_git_log_output.txt", "r")
-    all_of_it = get_git_log_in_current_directory()  # f.read()
+    all_of_it = get_git_log_in_current_directory()
     file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
 
     filtered_file_names = keep_only_files_with_correct_ending(file_names, ".py")
@@ -187,10 +182,11 @@ def main():
         file_occurence, complexity, filtered_file_names
     )
 
-    print(ordered_list_with_files(file_occurence))
+    #print(ordered_list_with_files(file_occurence))
 
     top_churners = 10
-    print("The top " + str(top_churners) + " files with churn in descending order:")
+    print_headline("Churn outliers")
+    print_subsection("The top " + str(top_churners) + " files with churn in descending order:")
     cleaned_ordered_list_with_files = keep_only_files_with_correct_ending(
         ordered_list_with_files(file_occurence), ".py"
     )
@@ -206,8 +202,6 @@ def main():
         "yada5": {"Churn": 15, "Complexity": 15},
         "yada20": {"Churn": 1, "Complexity": 1},
     }
-    print(result)
-    print(data["filename"]["Churn"])
 
     x_label = "Complexity"
     y_label = "Churn"
@@ -217,16 +211,18 @@ def main():
         result, x_label, y_label, max_x_output, max_y_output
     )
 
-    print(points_to_plot)
-    print(
-        "\n\n***************************************************\n\nChurn vs Complexity diagram \n"
-    )
+    print_headline("Complexity outliers")
+    print_subsection("The top " + str(top_churners) + " files with complexity in descending order:")
+    print("TBD!")
+
+    print_headline("Churn vs complexity outliers")
+    print_subsection("Plot of churn vs complexity for all files. Outliers are marked with O")
 
     print(
         get_diagram_output(points_to_plot, outliers_to_plot, max_x_output, max_y_output, "Churn", "Complexity")
     )
 
-    print("\n\nDetected outliers:")
+    print_subsection("Detected outliers (marked with O in the outlier plot)" )
     print(get_outliers_output(outliers))
     print_big_separator()
 
