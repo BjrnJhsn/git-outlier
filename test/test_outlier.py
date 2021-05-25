@@ -11,23 +11,19 @@ def test_get_file_name_from_git_log_line():
 
 def test_get_file_occurences_from_git_log():
     # When
-    subject = get_file_occurences_from_git_log(
+    file_occurences, file_names = get_file_occurences_from_git_log(
         "  34   28341287341234  filename\n123 123 filename \n 456 bla filename2 \n 123 123 filename3 \n 123 123 filename3 \n 123 123 filename3"
     )
 
     # Then
-    assert subject["filename"] == 2
-    assert subject["filename2"] == 1
-    assert subject["filename3"] == 3
+    assert file_occurences["filename"] == 2
+    assert file_occurences["filename2"] == 1
+    assert file_occurences["filename3"] == 3
 
 
 def test_ordered_list_with_files():
     # When
-    subject = ordered_list_with_files(
-        get_file_occurences_from_git_log(
-            "  34   28341287341234  filename\n123 123 filename \n 456 bla filename2 \n 123 123 filename3 \n 123 123 filename3 \n 123 123 filename3"
-        )
-    )
+    subject = ordered_list_with_files({"filename": 2, "filename2": 1, "filename3": 3})
 
     # Then
     assert subject[0][0] == "filename3"
