@@ -122,14 +122,14 @@ def prepare_plot_data(
     return points_to_plot, outliers_to_plot, outliers
 
 
-def keep_only_files_with_correct_ending(list, ending):
+def keep_only_files_with_correct_endings(list, endings):
     output_list = []
     for item in list:
         if type(item) is list or type(item) is tuple:
             filename, file_extension = os.path.splitext(item[0])
         else:
             filename, file_extension = os.path.splitext(item)
-        if file_extension == ending:
+        if file_extension in endings:
             output_list.append(item)
     return output_list
 
@@ -191,15 +191,20 @@ def main():
     startup_path = os.getcwd()
     os.chdir(os.path.expanduser("~/sources/github/lizard"))
 
-    complexity, file_occurence, filtered_file_names = get_git_and_complexity_data()
+    endings = [".py"]
+    complexity, file_occurence, filtered_file_names = get_git_and_complexity_data(
+        endings
+    )
 
     os.chdir(startup_path)
 
-    churn_outliers(file_occurence)
+    churn_outliers(file_occurence, endings)
 
-    complexity_outliers(complexity)
+    complexity_outliers(complexity, endings)
 
     churn_and_complexity_outliers(complexity, file_occurence, filtered_file_names)
+
+    print_big_separator()
 
 
 def churn_and_complexity_outliers(complexity, file_occurence, filtered_file_names):
@@ -231,33 +236,39 @@ def churn_and_complexity_outliers(complexity, file_occurence, filtered_file_name
     print(get_outliers_output(outliers))
 
 
-def complexity_outliers(complexity):
+def complexity_outliers(complexity, endings=[".py"]):
     top_complexity = 10
     print_headline("Complexity outliers")
     print_subsection(
         "The top " + str(top_complexity) + " files with complexity in descending order:"
     )
-    print("TBD!")
+    cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
+        ordered_list_with_files(complexity), endings
+    )
+    left_spacing = 11
+    print(f"Complexity Filenames")
+    for items in cleaned_ordered_list_with_files[0:top_complexity]:
+        print(f"{str(items[1]):11}{items[0]:10}")
 
 
-def churn_outliers(file_occurence):
+def churn_outliers(file_occurence, endings=[".py"]):
     top_churners = 10
     print_headline("Churn outliers")
     print_subsection(
         "The top " + str(top_churners) + " files with churn in descending order:"
     )
-    cleaned_ordered_list_with_files = keep_only_files_with_correct_ending(
-        ordered_list_with_files(file_occurence), ".py"
+    cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
+        ordered_list_with_files(file_occurence), endings
     )
     print(f"Changes Filenames")
     for items in cleaned_ordered_list_with_files[0:top_churners]:
         print(f"{str(items[1]):8}{items[0]:10}")
 
 
-def get_git_and_complexity_data():
+def get_git_and_complexity_data(endings=".py"):
     all_of_it = get_git_log_in_current_directory()
     file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
-    filtered_file_names = keep_only_files_with_correct_ending(file_names, ".py")
+    filtered_file_names = keep_only_files_with_correct_endings(file_names, endings)
     complexity = get_complexity_for_file_list(filtered_file_names[0:30])
     return complexity, file_occurence, filtered_file_names
 
