@@ -189,7 +189,7 @@ def print_small_separator():
 
 def main():
     startup_path = os.getcwd()
-    os.chdir(os.path.expanduser("~/sources/github/conan"))
+    os.chdir(os.path.expanduser("~/sources/github/lizard"))
 
     all_of_it = get_git_log_in_current_directory()
     file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
@@ -197,11 +197,11 @@ def main():
     filtered_file_names = keep_only_files_with_correct_ending(file_names, ".py")
     complexity = get_complexity_for_file_list(filtered_file_names[0:30])
 
+    os.chdir(startup_path)
+
     result = combine_churn_and_complexity(
         file_occurence, complexity, filtered_file_names
     )
-
-    # print(ordered_list_with_files(file_occurence))
 
     top_churners = 10
     print_headline("Churn outliers")
@@ -215,14 +215,11 @@ def main():
     for items in cleaned_ordered_list_with_files[0:top_churners]:
         print(f"{str(items[1]):8}{items[0]:10}")
 
-    data = {
-        "filename": {"Churn": 1, "Complexity": 20},
-        "filename2": {"Churn": 5, "Complexity": 20},
-        "yada": {"Churn": 20, "Complexity": 1},
-        "yada2": {"Churn": 15, "Complexity": 15},
-        "yada5": {"Churn": 15, "Complexity": 15},
-        "yada20": {"Churn": 1, "Complexity": 1},
-    }
+    print_headline("Complexity outliers")
+    print_subsection(
+        "The top " + str(top_churners) + " files with complexity in descending order:"
+    )
+    print("TBD!")
 
     x_label = "Complexity"
     y_label = "Churn"
@@ -231,12 +228,6 @@ def main():
     points_to_plot, outliers_to_plot, outliers = prepare_plot_data(
         result, x_label, y_label, max_x_output, max_y_output
     )
-
-    print_headline("Complexity outliers")
-    print_subsection(
-        "The top " + str(top_churners) + " files with complexity in descending order:"
-    )
-    print("TBD!")
 
     print_headline("Churn vs complexity outliers")
     print_subsection(
@@ -258,7 +249,7 @@ def main():
     print(get_outliers_output(outliers))
     print_big_separator()
 
-    os.chdir(startup_path)
+
 
 
 # Press the green button in the gutter to run the script.
