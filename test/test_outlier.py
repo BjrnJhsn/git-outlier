@@ -30,3 +30,12 @@ def test_ordered_list_with_files():
     assert subject[0][1] == 3
     assert subject[2][0] == "filename2"
     assert subject[2][1] == 1
+
+
+def test_keep_only_files_with_correct_ending():
+    subject = keep_only_files_with_correct_endings(
+        ["test.py", "yada.py", "keepMe.txt", "DontKeepMe.cpp"], [".txt", ".py"]
+    )
+    assert subject[0] == "test.py"
+    assert subject[1] == "yada.py"
+    assert subject[2] == "keepMe.txt"
