@@ -191,18 +191,56 @@ def main():
     startup_path = os.getcwd()
     os.chdir(os.path.expanduser("~/sources/github/lizard"))
 
-    all_of_it = get_git_log_in_current_directory()
-    file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
-
-    filtered_file_names = keep_only_files_with_correct_ending(file_names, ".py")
-    complexity = get_complexity_for_file_list(filtered_file_names[0:30])
+    complexity, file_occurence, filtered_file_names = get_git_and_complexity_data()
 
     os.chdir(startup_path)
 
+    churn_outliers(file_occurence)
+
+    complexity_outliers(complexity)
+
+    churn_and_complexity_outliers(complexity, file_occurence, filtered_file_names)
+
+
+def churn_and_complexity_outliers(complexity, file_occurence, filtered_file_names):
     result = combine_churn_and_complexity(
         file_occurence, complexity, filtered_file_names
     )
+    x_label = "Complexity"
+    y_label = "Churn"
+    max_x_output = 60
+    max_y_output = 20
+    points_to_plot, outliers_to_plot, outliers = prepare_plot_data(
+        result, x_label, y_label, max_x_output, max_y_output
+    )
+    print_headline("Churn vs complexity outliers")
+    print_subsection(
+        "Plot of churn vs complexity for all files. Outliers are marked with O"
+    )
+    print(
+        get_diagram_output(
+            points_to_plot,
+            outliers_to_plot,
+            max_x_output,
+            max_y_output,
+            "Churn",
+            "Complexity",
+        )
+    )
+    print_subsection("Detected outliers (marked with O in the outlier plot)")
+    print(get_outliers_output(outliers))
 
+
+def complexity_outliers(complexity):
+    top_complexity = 10
+    print_headline("Complexity outliers")
+    print_subsection(
+        "The top " + str(top_complexity) + " files with complexity in descending order:"
+    )
+    print("TBD!")
+
+
+def churn_outliers(file_occurence):
     top_churners = 10
     print_headline("Churn outliers")
     print_subsection(
@@ -215,41 +253,13 @@ def main():
     for items in cleaned_ordered_list_with_files[0:top_churners]:
         print(f"{str(items[1]):8}{items[0]:10}")
 
-    print_headline("Complexity outliers")
-    print_subsection(
-        "The top " + str(top_churners) + " files with complexity in descending order:"
-    )
-    print("TBD!")
 
-    x_label = "Complexity"
-    y_label = "Churn"
-    max_x_output = 60
-    max_y_output = 20
-    points_to_plot, outliers_to_plot, outliers = prepare_plot_data(
-        result, x_label, y_label, max_x_output, max_y_output
-    )
-
-    print_headline("Churn vs complexity outliers")
-    print_subsection(
-        "Plot of churn vs complexity for all files. Outliers are marked with O"
-    )
-
-    print(
-        get_diagram_output(
-            points_to_plot,
-            outliers_to_plot,
-            max_x_output,
-            max_y_output,
-            "Churn",
-            "Complexity",
-        )
-    )
-
-    print_subsection("Detected outliers (marked with O in the outlier plot)")
-    print(get_outliers_output(outliers))
-    print_big_separator()
-
-
+def get_git_and_complexity_data():
+    all_of_it = get_git_log_in_current_directory()
+    file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
+    filtered_file_names = keep_only_files_with_correct_ending(file_names, ".py")
+    complexity = get_complexity_for_file_list(filtered_file_names[0:30])
+    return complexity, file_occurence, filtered_file_names
 
 
 # Press the green button in the gutter to run the script.
