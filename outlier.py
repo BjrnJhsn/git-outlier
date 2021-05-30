@@ -205,7 +205,9 @@ def print_small_separator():
     print("\n****************************************************\n")
 
 
-def churn_and_complexity_outliers(complexity, file_occurence, filtered_file_names):
+def churn_and_complexity_outliers(
+    complexity, file_occurence, filtered_file_names, complexity_metric
+):
     result = combine_churn_and_complexity(
         file_occurence, complexity, filtered_file_names
     )
@@ -227,18 +229,22 @@ def churn_and_complexity_outliers(complexity, file_occurence, filtered_file_name
             max_x_output,
             max_y_output,
             "Churn",
-            "Complexity",
+            "Complexity(" + str(complexity_metric) + ")",
         )
     )
     print_subsection("Detected outliers (marked with O in the outlier plot)")
     print(get_outliers_output(outliers))
 
 
-def complexity_outliers(complexity, endings=[".py"]):
+def complexity_outliers(complexity, complexity_metric, endings=[".py"]):
     top_complexity = 10
     print_headline("Complexity outliers")
     print_subsection(
-        "The top " + str(top_complexity) + " files with complexity in descending order:"
+        "The top "
+        + str(top_complexity)
+        + " files with complexity ("
+        + str(complexity_metric)
+        + ") in descending order:"
     )
     cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
         ordered_list_with_files(complexity), endings
@@ -366,15 +372,14 @@ def main():
 
     churn_outliers(file_occurence, endings)
 
-    complexity_outliers(computed_complexity, endings)
+    complexity_outliers(computed_complexity, options.metric, endings)
 
     churn_and_complexity_outliers(
-        computed_complexity, file_occurence, filtered_file_names
+        computed_complexity, file_occurence, filtered_file_names, options.metric
     )
 
     print_big_separator()
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == "__main__":
     main()
