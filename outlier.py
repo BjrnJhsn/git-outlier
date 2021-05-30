@@ -288,10 +288,10 @@ def get_file_endings_for_languages(languages):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description="""yada yada
-
-
-    yada"""
+        description="""Analyze a source directory that uses git as version handling system. The source files
+        are analyzed for outliers and these outliers can be good candidates for refactoring to increase
+        maintainability. The source files are ranked in falling order after churn, complexity, and combined churn 
+        and complexity."""
     )
     parser.add_argument(
         "--languages",
@@ -317,7 +317,7 @@ def parse_arguments():
     ok_metrics = ["NLOC", "CCN"]
     if args.metric not in ok_metrics:
         print(
-            args.complexity
+            str(args.metric)
             + " is not a valid option for complexity metric. Please choose from:"
         )
         print(ok_metrics)
