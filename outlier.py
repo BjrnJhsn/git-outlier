@@ -4,20 +4,28 @@
 import subprocess
 import os
 import argparse
+import sys
 import lizard
 
+
 def get_git_log_in_current_directory():
-    PIPE = subprocess.PIPE
-    branch = "my_branch"
+    pipe = subprocess.PIPE
 
     # git log --numstat --pretty="" --no-merges
-    process = subprocess.Popen(
-        ["git", "log", "--numstat", "--no-merges", "--pretty="],
-        stdout=PIPE,
-        stderr=PIPE,
-        text=True,
-    )
-    stdoutput, stderroutput = process.communicate()
+    try:
+        process = subprocess.Popen(
+            ["git", "log", "--numstat", "--no-merges", "--pretty="],
+            stdout=pipe,
+            stderr=pipe,
+            text=True,
+        )
+        stdoutput, stderroutput = process.communicate()
+    except OSError as err:
+        print("OS error: {0}".format(err))
+        sys.exit(1)
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        sys.exit(1)
 
     # if 'fatal' in stdoutput:
     #
@@ -135,10 +143,18 @@ def keep_only_files_with_correct_endings(file_list, endings):
     return output_list
 
 
-def get_complexity_for_file_list(file_list):
+def get_complexity_for_file_list(file_list, complexity_metric):
     complexity = {}
     for file_name in file_list:
-        complexity[file_name] = run_analyzer_on_file(file_name).CCN
+        result = run_analyzer_on_file(file_name)
+        # print(result.__dict__)
+        if complexity_metric == "CCN":
+            complexity[file_name] = result.CCN
+        elif complexity_metric == "NLOC":
+            complexity[file_name] = result.nloc
+        else:
+            print("Internal error: Unknown complexity metric specified")
+            sys.exit(1)
     return complexity
 
 
@@ -247,11 +263,15 @@ def churn_outliers(file_occurence, endings=[".py"]):
         print(f"{str(items[1]):8}{items[0]:10}")
 
 
-def get_git_and_complexity_data(endings=".py"):
+def get_git_and_complexity_data(endings, complexity_metric):
     all_of_it = get_git_log_in_current_directory()
+    print("Retrieving git log...")
     file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
     filtered_file_names = keep_only_files_with_correct_endings(file_names, endings)
-    complexity = get_complexity_for_file_list(filtered_file_names[0:30])
+    print("Computing complexity...")
+    complexity = get_complexity_for_file_list(
+        filtered_file_names[0:30], complexity_metric
+    )
     return complexity, file_occurence, filtered_file_names
 
 
@@ -278,38 +298,79 @@ def parse_arguments():
         "-l",
         nargs=1,
         help="List the programming languages you want to analyze. if left empty, it'll"
-        "search for all languages it knows. \'lizard -l cpp -l java\'searches for"
+        "search for all languages it knows. 'lizard -l cpp -l java'searches for"
         "C++ and Java code. The available languages are: cpp, java, csharp,"
         "javascript, python, objectivec, ttcn, ruby, php, swift, scala, GDScript,"
         "go, lua, rust, typescript",
     )
+    parser.add_argument(
+        "--metric",
+        "-m",
+        nargs="?",
+        help="Choose the complexity metric you would like to base the results on. Either cyclomatic"
+        "complexity 'CCN' or lines of code without comments 'NLOC'. If not specified, the default is 'CCN.",
+        default="CCN",
+    )
     parser.add_argument("path", nargs=1)
     args = parser.parse_args()
 
-    print(args)
+    ok_metrics = ["NLOC", "CCN"]
+    if args.metric not in ok_metrics:
+        print(
+            args.complexity
+            + " is not a valid option for complexity metric. Please choose from:"
+        )
+        print(ok_metrics)
+        sys.exit(1)
+
+    return args
+
+
+def switch_to_correct_path_and_save_current(path_to_switch):
+    startup_path = os.getcwd()
+    try:
+        os.chdir(os.path.expanduser(path_to_switch[0]))
+    except OSError as err:
+        print("OS error: {0}".format(err))
+        sys.exit(1)
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        sys.exit(1)
+    return startup_path
+
+
+def switch_back_original_directory(path):
+    try:
+        os.chdir(path)
+    except OSError as err:
+        print("OS error: {0}".format(err))
+        sys.exit(1)
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        sys.exit(1)
 
 
 def main():
-    parse_arguments()
+    options = parse_arguments()
 
-    startup_path = os.getcwd()
-    os.chdir(os.path.expanduser("~/sources/github/lizard"))
+    startup_path = switch_to_correct_path_and_save_current(options.path)
 
-    print(get_file_endings_for_languages(["cpp", "py"]))
-    print(get_file_endings_for_languages("cpp"))
+    endings = get_file_endings_for_languages(options.languages)
+    (
+        computed_complexity,
+        file_occurence,
+        filtered_file_names,
+    ) = get_git_and_complexity_data(endings, options.metric)
 
-    endings = [".py"]
-    complexity, file_occurence, filtered_file_names = get_git_and_complexity_data(
-        endings
-    )
-
-    os.chdir(startup_path)
+    switch_back_original_directory(startup_path)
 
     churn_outliers(file_occurence, endings)
 
-    complexity_outliers(complexity, endings)
+    complexity_outliers(computed_complexity, endings)
 
-    churn_and_complexity_outliers(complexity, file_occurence, filtered_file_names)
+    churn_and_complexity_outliers(
+        computed_complexity, file_occurence, filtered_file_names
+    )
 
     print_big_separator()
 
