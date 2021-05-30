@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import lizard
+
 import subprocess
 import os
-
+import argparse
+import lizard
 
 def get_git_log_in_current_directory():
     PIPE = subprocess.PIPE
@@ -122,10 +123,10 @@ def prepare_plot_data(
     return points_to_plot, outliers_to_plot, outliers
 
 
-def keep_only_files_with_correct_endings(list, endings):
+def keep_only_files_with_correct_endings(file_list, endings):
     output_list = []
-    for item in list:
-        if type(item) is list or type(item) is tuple:
+    for item in file_list:
+        if type(item) is file_list or type(item) is tuple:
             filename, file_extension = os.path.splitext(item[0])
         else:
             filename, file_extension = os.path.splitext(item)
@@ -134,9 +135,9 @@ def keep_only_files_with_correct_endings(list, endings):
     return output_list
 
 
-def get_complexity_for_file_list(list):
+def get_complexity_for_file_list(file_list):
     complexity = {}
-    for file_name in list:
+    for file_name in file_list:
         complexity[file_name] = run_analyzer_on_file(file_name).CCN
     return complexity
 
@@ -163,14 +164,17 @@ def get_outliers_output(outliers):
     return output
 
 
+def big_separator():
+    return (
+        "*********************************************"
+        + "************************************************"
+    )
+
+
 def print_headline(headline):
-    print(
-        "\n*********************************************************************************************"
-    )
+    print("\n" + big_separator())
     print("*  " + headline)
-    print(
-        "*********************************************************************************************\n"
-    )
+    print(big_separator() + "\n")
 
 
 def print_subsection(subsection):
@@ -178,33 +182,11 @@ def print_subsection(subsection):
 
 
 def print_big_separator():
-    print(
-        "\n*********************************************************************************************\n"
-    )
+    print("\n" + big_separator())
 
 
 def print_small_separator():
     print("\n****************************************************\n")
-
-
-def main():
-    startup_path = os.getcwd()
-    os.chdir(os.path.expanduser("~/sources/github/lizard"))
-
-    endings = [".py"]
-    complexity, file_occurence, filtered_file_names = get_git_and_complexity_data(
-        endings
-    )
-
-    os.chdir(startup_path)
-
-    churn_outliers(file_occurence, endings)
-
-    complexity_outliers(complexity, endings)
-
-    churn_and_complexity_outliers(complexity, file_occurence, filtered_file_names)
-
-    print_big_separator()
 
 
 def churn_and_complexity_outliers(complexity, file_occurence, filtered_file_names):
@@ -271,6 +253,65 @@ def get_git_and_complexity_data(endings=".py"):
     filtered_file_names = keep_only_files_with_correct_endings(file_names, endings)
     complexity = get_complexity_for_file_list(filtered_file_names[0:30])
     return complexity, file_occurence, filtered_file_names
+
+
+def get_file_endings_for_languages(languages):
+    supported_languages = {"cpp": [".cpp", ".cxx"], "py": [".py"]}
+    language_file_endings = []
+    if type(languages) is not list:
+        languages = [languages]
+    for language in languages:
+        if language in supported_languages:
+            language_file_endings.extend(supported_languages[language])
+    return language_file_endings
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="""yada yada
+
+
+    yada"""
+    )
+    parser.add_argument(
+        "--languages",
+        "-l",
+        nargs=1,
+        help="List the programming languages you want to analyze. if left empty, it'll"
+        "search for all languages it knows. \'lizard -l cpp -l java\'searches for"
+        "C++ and Java code. The available languages are: cpp, java, csharp,"
+        "javascript, python, objectivec, ttcn, ruby, php, swift, scala, GDScript,"
+        "go, lua, rust, typescript",
+    )
+    parser.add_argument("path", nargs=1)
+    args = parser.parse_args()
+
+    print(args)
+
+
+def main():
+    parse_arguments()
+
+    startup_path = os.getcwd()
+    os.chdir(os.path.expanduser("~/sources/github/lizard"))
+
+    print(get_file_endings_for_languages(["cpp", "py"]))
+    print(get_file_endings_for_languages("cpp"))
+
+    endings = [".py"]
+    complexity, file_occurence, filtered_file_names = get_git_and_complexity_data(
+        endings
+    )
+
+    os.chdir(startup_path)
+
+    churn_outliers(file_occurence, endings)
+
+    complexity_outliers(complexity, endings)
+
+    churn_and_complexity_outliers(complexity, file_occurence, filtered_file_names)
+
+    print_big_separator()
 
 
 # Press the green button in the gutter to run the script.

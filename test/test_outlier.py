@@ -39,3 +39,18 @@ def test_keep_only_files_with_correct_ending():
     assert subject[0] == "test.py"
     assert subject[1] == "yada.py"
     assert subject[2] == "keepMe.txt"
+
+
+def test_get_file_endings_for_languages():
+    subject = get_file_endings_for_languages(["cpp", "py"])
+    assert subject[0] == ".cpp"
+    assert subject[1] == ".cxx"
+    assert subject[2] == ".py"
+
+    subject = get_file_endings_for_languages(["cpp"])
+    assert subject[0] == ".cpp"
+    assert subject[1] == ".cxx"
+
+    subject = get_file_endings_for_languages("cpp")
+    assert subject[0] == ".cpp"
+    assert subject[1] == ".cxx"
