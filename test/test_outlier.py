@@ -42,7 +42,7 @@ def test_keep_only_files_with_correct_ending():
 
 
 def test_get_file_endings_for_languages():
-    subject = get_file_endings_for_languages(["cpp", "py"])
+    subject = get_file_endings_for_languages(["cpp", "python"])
     assert subject[0] == ".cpp"
     assert subject[1] == ".cxx"
     assert subject[2] == ".py"
