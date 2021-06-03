@@ -297,9 +297,11 @@ def get_git_and_complexity_data(endings, complexity_metric, start_date):
     print(str(len(filtered_file_names)) + " files analyzed.")
     return complexity, file_occurence, filtered_file_names
 
+def get_supported_languages():
+    return {"cpp": [".cpp", ".cxx"], "python": [".py"]}
 
 def get_file_endings_for_languages(languages):
-    supported_languages = {"cpp": [".cpp", ".cxx"], "py": [".py"]}
+    supported_languages = get_supported_languages()
     language_file_endings = []
     if type(languages) is not list:
         languages = [languages]
@@ -325,11 +327,12 @@ def parse_arguments():
         "C++ and Java code. The available languages are: cpp, java, csharp,"
         "javascript, python, objectivec, ttcn, ruby, php, swift, scala, GDScript,"
         "go, lua, rust, typescript",
+        default='python'
     )
     parser.add_argument(
         "--metric",
         "-m",
-        nargs="?",
+        nargs=1,
         help="Choose the complexity metric you would like to base the results on. Either cyclomatic"
         "complexity 'CCN' or lines of code without comments 'NLOC'. If not specified, the default is 'CCN.",
         default="CCN",
@@ -355,6 +358,10 @@ def parse_arguments():
             + " is not a valid option for complexity metric. Please choose from: "
             + str(ok_metrics)
         )
+
+    # Need to fix :-)
+    #if args.languages not in get_supported_languages().keys:
+    #    parser.error("Unsupported languages: " + str(args.languages))
 
     return args
 
