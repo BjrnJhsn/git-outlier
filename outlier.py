@@ -6,15 +6,25 @@ import os
 import argparse
 import sys
 import lizard
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
 
-def get_git_log_in_current_directory():
+def get_git_log_in_current_directory(start_date):
     pipe = subprocess.PIPE
 
     # git log --numstat --pretty="" --no-merges
+
     try:
         process = subprocess.Popen(
-            ["git", "log", "--numstat", "--no-merges", "--pretty="],
+            [
+                "git",
+                "log",
+                "--numstat",
+                "--no-merges",
+                "--since=" + start_date,
+                "--pretty=",
+            ],
             stdout=pipe,
             stderr=pipe,
             text=True,
@@ -182,14 +192,14 @@ def get_outliers_output(outliers):
 
 def big_separator():
     return (
-        "*********************************************"
-        + "************************************************"
+        "=================================================="
+        + "================================================="
     )
 
 
 def print_headline(headline):
     print("\n" + big_separator())
-    print("*  " + headline)
+    print("=  " + headline)
     print(big_separator() + "\n")
 
 
@@ -202,11 +212,11 @@ def print_big_separator():
 
 
 def print_small_separator():
-    print("\n****************************************************\n")
+    print("\n============================================================n")
 
 
 def churn_and_complexity_outliers(
-    complexity, file_occurence, filtered_file_names, complexity_metric
+    complexity, file_occurence, filtered_file_names, complexity_metric, start_date
 ):
     result = combine_churn_and_complexity(
         file_occurence, complexity, filtered_file_names
@@ -220,7 +230,9 @@ def churn_and_complexity_outliers(
     )
     print_headline("Churn vs complexity outliers")
     print_subsection(
-        "Plot of churn vs complexity for all files. Outliers are marked with O"
+        "Plot of churn vs complexity for all files since "
+        + start_date
+        + ". Outliers are marked with O"
     )
     print(
         get_diagram_output(
@@ -236,7 +248,7 @@ def churn_and_complexity_outliers(
     print(get_outliers_output(outliers))
 
 
-def complexity_outliers(complexity, complexity_metric, endings=[".py"]):
+def complexity_outliers(complexity, complexity_metric, start_date, endings=[".py"]):
     top_complexity = 10
     print_headline("Complexity outliers")
     print_subsection(
@@ -244,7 +256,9 @@ def complexity_outliers(complexity, complexity_metric, endings=[".py"]):
         + str(top_complexity)
         + " files with complexity ("
         + str(complexity_metric)
-        + ") in descending order:"
+        + ") in descending order since "
+        + start_date
+        + ":"
     )
     cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
         ordered_list_with_files(complexity), endings
@@ -255,11 +269,15 @@ def complexity_outliers(complexity, complexity_metric, endings=[".py"]):
         print(f"{str(items[1]):11}{items[0]:10}")
 
 
-def churn_outliers(file_occurence, endings=[".py"]):
+def churn_outliers(start_date, file_occurence, endings=[".py"]):
     top_churners = 10
     print_headline("Churn outliers")
     print_subsection(
-        "The top " + str(top_churners) + " files with churn in descending order:"
+        "The top "
+        + str(top_churners)
+        + " files with churn in descending order since "
+        + start_date
+        + ":"
     )
     cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
         ordered_list_with_files(file_occurence), endings
@@ -269,15 +287,14 @@ def churn_outliers(file_occurence, endings=[".py"]):
         print(f"{str(items[1]):8}{items[0]:10}")
 
 
-def get_git_and_complexity_data(endings, complexity_metric):
-    all_of_it = get_git_log_in_current_directory()
+def get_git_and_complexity_data(endings, complexity_metric, start_date):
+    all_of_it = get_git_log_in_current_directory(start_date)
     print("Retrieving git log...")
     file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
     filtered_file_names = keep_only_files_with_correct_endings(file_names, endings)
     print("Computing complexity...")
-    complexity = get_complexity_for_file_list(
-        filtered_file_names[0:30], complexity_metric
-    )
+    complexity = get_complexity_for_file_list(filtered_file_names, complexity_metric)
+    print(str(len(filtered_file_names)) + " files analyzed.")
     return complexity, file_occurence, filtered_file_names
 
 
@@ -317,17 +334,27 @@ def parse_arguments():
         "complexity 'CCN' or lines of code without comments 'NLOC'. If not specified, the default is 'CCN.",
         default="CCN",
     )
+    parser.add_argument(
+        "--span",
+        "-s",
+        nargs=1,
+        help="The number (integer) of months the analysis will look at. Default is 12 months.",
+        default=12,
+        type=int,
+    )
     parser.add_argument("path", nargs=1)
     args = parser.parse_args()
 
+    if args.span and args.span[0] < 1 or args.span[0] > 100:
+        parser.error("Span must be in the range (1,100).")
+
     ok_metrics = ["NLOC", "CCN"]
     if args.metric not in ok_metrics:
-        print(
+        parser.error(
             str(args.metric)
-            + " is not a valid option for complexity metric. Please choose from:"
+            + " is not a valid option for complexity metric. Please choose from: "
+            + str(ok_metrics)
         )
-        print(ok_metrics)
-        sys.exit(1)
 
     return args
 
@@ -356,26 +383,41 @@ def switch_back_original_directory(path):
         sys.exit(1)
 
 
+def get_start_date(span_in_months):
+    today = date.today()
+    if type(span_in_months) is list:
+        span_in_months = span_in_months[0]
+    assert span_in_months >= 0
+    start = today + relativedelta(months=-span_in_months)
+    return str(start)
+
+
 def main():
+
     options = parse_arguments()
 
     startup_path = switch_to_correct_path_and_save_current(options.path)
 
     endings = get_file_endings_for_languages(options.languages)
+    start_date = get_start_date(options.span)
     (
         computed_complexity,
         file_occurence,
         filtered_file_names,
-    ) = get_git_and_complexity_data(endings, options.metric)
+    ) = get_git_and_complexity_data(endings, options.metric, start_date)
 
     switch_back_original_directory(startup_path)
 
-    churn_outliers(file_occurence, endings)
+    churn_outliers(start_date, file_occurence, endings)
 
-    complexity_outliers(computed_complexity, options.metric, endings)
+    complexity_outliers(computed_complexity, options.metric, start_date, endings)
 
     churn_and_complexity_outliers(
-        computed_complexity, file_occurence, filtered_file_names, options.metric
+        computed_complexity,
+        file_occurence,
+        filtered_file_names,
+        options.metric,
+        start_date,
     )
 
     print_big_separator()
