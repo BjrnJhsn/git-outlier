@@ -297,8 +297,10 @@ def get_git_and_complexity_data(endings, complexity_metric, start_date):
     print(str(len(filtered_file_names)) + " files analyzed.")
     return complexity, file_occurence, filtered_file_names
 
+
 def get_supported_languages():
     return {"cpp": [".cpp", ".cxx"], "python": [".py"]}
+
 
 def get_file_endings_for_languages(languages):
     supported_languages = get_supported_languages()
@@ -327,7 +329,7 @@ def parse_arguments(incoming):
         "C++ and Java code. The available languages are: cpp, java, csharp,"
         "javascript, python, objectivec, ttcn, ruby, php, swift, scala, GDScript,"
         "go, lua, rust, typescript",
-        default='python'
+        default="python",
     )
     parser.add_argument(
         "--metric",
@@ -360,7 +362,7 @@ def parse_arguments(incoming):
         )
 
     # Need to fix :-)
-    #if args.languages not in get_supported_languages().keys:
+    # if args.languages not in get_supported_languages().keys:
     #    parser.error("Unsupported languages: " + str(args.languages))
 
     return args
