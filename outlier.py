@@ -342,7 +342,7 @@ def parse_arguments():
         "-s",
         nargs=1,
         help="The number (integer) of months the analysis will look at. Default is 12 months.",
-        default=12,
+        default=[12],
         type=int,
     )
     parser.add_argument("path", nargs=1)
