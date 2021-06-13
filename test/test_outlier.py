@@ -54,3 +54,7 @@ def test_get_file_endings_for_languages():
     subject = get_file_endings_for_languages("cpp")
     assert subject[0] == ".cpp"
     assert subject[1] == ".cxx"
+
+def test_argument_parser():
+    subject = parse_arguments(".")
+    assert subject.span[0] == 12

@@ -311,7 +311,7 @@ def get_file_endings_for_languages(languages):
     return language_file_endings
 
 
-def parse_arguments():
+def parse_arguments(incoming):
     parser = argparse.ArgumentParser(
         description="""Analyze a source directory that uses git as version handling system. The source files
         are analyzed for outliers and these outliers can be good candidates for refactoring to increase
@@ -346,7 +346,7 @@ def parse_arguments():
         type=int,
     )
     parser.add_argument("path", nargs=1)
-    args = parser.parse_args()
+    args = parser.parse_args(incoming)
 
     if args.span and args.span[0] < 1 or args.span[0] > 100:
         parser.error("Span must be in the range (1,100).")
@@ -401,7 +401,7 @@ def get_start_date(span_in_months):
 
 def main():
 
-    options = parse_arguments()
+    options = parse_arguments(sys.argv[1:])
 
     startup_path = switch_to_correct_path_and_save_current(options.path)
 
