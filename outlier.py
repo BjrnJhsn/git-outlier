@@ -323,18 +323,15 @@ def parse_arguments(incoming):
     parser.add_argument(
         "--languages",
         "-l",
-        nargs=1,
+        action='append',
         help="List the programming languages you want to analyze. if left empty, it'll"
-        "search for all languages it knows. 'lizard -l cpp -l java'searches for"
-        "C++ and Java code. The available languages are: cpp, java, csharp,"
-        "javascript, python, objectivec, ttcn, ruby, php, swift, scala, GDScript,"
-        "go, lua, rust, typescript",
-        default="python",
+        "search for python. 'outlier -l cpp -l python'searches for"
+        "C++ and Python code. The available languages are: cpp, python",
+        type=str,
     )
     parser.add_argument(
         "--metric",
         "-m",
-        nargs=1,
         help="Choose the complexity metric you would like to base the results on. Either cyclomatic"
         "complexity 'CCN' or lines of code without comments 'NLOC'. If not specified, the default is 'CCN.",
         default="CCN",
@@ -342,15 +339,14 @@ def parse_arguments(incoming):
     parser.add_argument(
         "--span",
         "-s",
-        nargs=1,
         help="The number (integer) of months the analysis will look at. Default is 12 months.",
-        default=[12],
+        default=12,
         type=int,
     )
-    parser.add_argument("path", nargs=1)
+    parser.add_argument("path")
     args = parser.parse_args(incoming)
 
-    if args.span and args.span[0] < 1 or args.span[0] > 100:
+    if args.span and args.span < 1 or args.span > 100:
         parser.error("Span must be in the range (1,100).")
 
     ok_metrics = ["NLOC", "CCN"]
@@ -362,8 +358,13 @@ def parse_arguments(incoming):
         )
 
     # Need to fix :-)
-    # if args.languages not in get_supported_languages().keys:
-    #    parser.error("Unsupported languages: " + str(args.languages))
+    if args.languages is None:
+        args.languages = ["python"]
+
+    supported_languages = get_supported_languages()
+    supported_languages_list = [*supported_languages]
+    if not all(elem in supported_languages_list for elem in args.languages ):
+        parser.error("Unsupported languages: " + str(args.languages))
 
     return args
 
