@@ -323,7 +323,7 @@ def parse_arguments(incoming):
     parser.add_argument(
         "--languages",
         "-l",
-        action='append',
+        action="append",
         help="List the programming languages you want to analyze. if left empty, it'll"
         "search for python. 'outlier -l cpp -l python'searches for"
         "C++ and Python code. The available languages are: cpp, python",
@@ -363,7 +363,7 @@ def parse_arguments(incoming):
 
     supported_languages = get_supported_languages()
     supported_languages_list = [*supported_languages]
-    if not all(elem in supported_languages_list for elem in args.languages ):
+    if not all(elem in supported_languages_list for elem in args.languages):
         parser.error("Unsupported languages: " + str(args.languages))
 
     return args
