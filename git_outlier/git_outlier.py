@@ -298,7 +298,28 @@ def get_git_and_complexity_data(endings, complexity_metric, start_date):
 
 
 def get_supported_languages():
-    return {"cpp": [".cpp", ".cxx"], "python": [".py"]}
+    return {
+        "objective-c": [".m", ".mm"],
+        "lua": [".lua"],
+        "javascript": [".js"],
+        "java": [".java"],
+        "go": [".go"],
+        "fortran": [
+            ".f70",
+            ".f90",
+            ".f95",
+            ".f03",
+            ".f08",
+            ".f",
+            ".for",
+            ".ftn",
+            ".fpp",
+        ],
+        "c": [".c", ".h"],
+        "cpp": [".cpp", ".cc", ".mm", ".cxx", ".h", ".hpp"],
+        "python": [".py"],
+        "csharp": [".cs"],
+    }
 
 
 def get_file_endings_for_languages(languages):

@@ -44,16 +44,28 @@ def test_keep_only_files_with_correct_ending():
 def test_get_file_endings_for_languages():
     subject = get_file_endings_for_languages(["cpp", "python"])
     assert subject[0] == ".cpp"
-    assert subject[1] == ".cxx"
-    assert subject[2] == ".py"
+    assert subject[1] == ".cc"
+    assert subject[2] == ".mm"
+    assert subject[3] == ".cxx"
+    assert subject[4] == ".h"
+    assert subject[5] == ".hpp"
+    assert subject[6] == ".py"
 
     subject = get_file_endings_for_languages(["cpp"])
     assert subject[0] == ".cpp"
-    assert subject[1] == ".cxx"
+    assert subject[1] == ".cc"
+    assert subject[2] == ".mm"
+    assert subject[3] == ".cxx"
+    assert subject[4] == ".h"
+    assert subject[5] == ".hpp"
 
     subject = get_file_endings_for_languages("cpp")
     assert subject[0] == ".cpp"
-    assert subject[1] == ".cxx"
+    assert subject[1] == ".cc"
+    assert subject[2] == ".mm"
+    assert subject[3] == ".cxx"
+    assert subject[4] == ".h"
+    assert subject[5] == ".hpp"
 
 
 def test_argument_parser():
