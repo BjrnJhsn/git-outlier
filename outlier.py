@@ -27,7 +27,7 @@ def get_git_log_in_current_directory(start_date):
             ],
             stdout=pipe,
             stderr=pipe,
-            text=True,
+            universal_newlines=True,
         )
         stdoutput, stderroutput = process.communicate()
     except OSError as err:
@@ -156,15 +156,16 @@ def keep_only_files_with_correct_endings(file_list, endings):
 def get_complexity_for_file_list(file_list, complexity_metric):
     complexity = {}
     for file_name in file_list:
-        result = run_analyzer_on_file(file_name)
-        # print(result.__dict__)
-        if complexity_metric == "CCN":
-            complexity[file_name] = result.CCN
-        elif complexity_metric == "NLOC":
-            complexity[file_name] = result.nloc
-        else:
-            print("Internal error: Unknown complexity metric specified")
-            sys.exit(1)
+        if os.path.isfile(file_name):
+            print("Analyzing " + str(file_name))
+            result = run_analyzer_on_file(file_name)
+            if complexity_metric == "CCN":
+                complexity[file_name] = result.CCN
+            elif complexity_metric == "NLOC":
+                complexity[file_name] = result.nloc
+            else:
+                print("Internal error: Unknown complexity metric specified")
+                sys.exit(1)
     return complexity
 
 
