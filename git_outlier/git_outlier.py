@@ -14,13 +14,13 @@ def get_git_log_in_current_directory(start_date):
     pipe = subprocess.PIPE
 
     git_command = [
-                "git",
-                "log",
-                "--numstat",
-                "--no-merges",
-                "--since=" + start_date,
-                "--pretty=",
-            ]
+        "git",
+        "log",
+        "--numstat",
+        "--no-merges",
+        "--since=" + start_date,
+        "--pretty=",
+    ]
     try:
         process = subprocess.Popen(
             git_command,
