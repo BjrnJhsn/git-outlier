@@ -1,4 +1,4 @@
-from outlier import *
+from git_outlier.git_outlier import *
 
 
 def test_get_file_name_from_git_log_line():
