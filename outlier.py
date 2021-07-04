@@ -13,16 +13,17 @@ from dateutil.relativedelta import relativedelta
 def get_git_log_in_current_directory(start_date):
     pipe = subprocess.PIPE
 
-    try:
-        process = subprocess.Popen(
-            [
+    git_command = [
                 "git",
                 "log",
                 "--numstat",
                 "--no-merges",
                 "--since=" + start_date,
                 "--pretty=",
-            ],
+            ]
+    try:
+        process = subprocess.Popen(
+            git_command,
             stdout=pipe,
             stderr=pipe,
             universal_newlines=True,
@@ -32,8 +33,9 @@ def get_git_log_in_current_directory(start_date):
         print("OS error: {0}".format(err))
         sys.exit(1)
     except:
+        print("Unexpected error: ", sys.exc_info()[0])
+        print("Trying to execute the following subprocess: " + str(git_command))
         print("Git problem, exiting...")
-        print("Unexpected error:", sys.exc_info()[0])
         sys.exit(1)
 
     return stdoutput
@@ -178,10 +180,13 @@ def combine_churn_and_complexity(file_occurence, complexity, filtered_file_names
 
 
 def get_outliers_output(outliers):
-    output = ""
-    for key in outliers:
-        output = output + key + "\n"
-    return output
+    if len(outliers) == 0:
+        return "No outliers were found.\n"
+    else:
+        output = ""
+        for key in outliers:
+            output = output + key + "\n"
+        return output
 
 
 def big_separator():
@@ -366,7 +371,8 @@ def parse_arguments(incoming):
 def switch_to_correct_path_and_save_current(path_to_switch):
     startup_path = os.getcwd()
     try:
-        os.chdir(os.path.expanduser(path_to_switch[0]))
+        expanded_path = os.path.expanduser(path_to_switch)
+        os.chdir(expanded_path)
     except OSError as err:
         print("OS error: {0}".format(err))
         sys.exit(1)
