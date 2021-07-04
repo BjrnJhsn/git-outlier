@@ -13,8 +13,6 @@ from dateutil.relativedelta import relativedelta
 def get_git_log_in_current_directory(start_date):
     pipe = subprocess.PIPE
 
-    # git log --numstat --pretty="" --no-merges
-
     try:
         process = subprocess.Popen(
             [
@@ -34,14 +32,9 @@ def get_git_log_in_current_directory(start_date):
         print("OS error: {0}".format(err))
         sys.exit(1)
     except:
+        print("Git problem, exiting...")
         print("Unexpected error:", sys.exc_info()[0])
         sys.exit(1)
-
-    # if 'fatal' in stdoutput:
-    #
-    #   # Handle error case
-    #   print("Git problem, exiting...")
-    #   exit(1)
 
     return stdoutput
 
