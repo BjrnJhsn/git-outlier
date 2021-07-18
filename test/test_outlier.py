@@ -38,6 +38,53 @@ def test_ordered_list_with_files():
     assert subject[2][1] == 1
 
 
+def test_get_diagram_output():
+    # When
+    points_to_plot = {0: None, 1: None, 2: None}
+    outliers_to_plot = {0: None, 1: None, 2: None}
+    max_xval = 2
+    max_yval = 2
+    x_axis = "xAxis"
+    y_axis = "yAxis"
+
+    subject = get_diagram_output(
+        points_to_plot, outliers_to_plot, max_xval, max_yval, x_axis, y_axis
+    )
+
+    # Then
+    assert subject == "yAxis\n|\n|\n|\n---xAxis"
+
+    # When
+    points_to_plot = {0: None, 1: None, 2: None}
+    outliers_to_plot = {0: None, 1: None, 2: None}
+    max_xval = 3
+    max_yval = 2
+    x_axis = "xAxis"
+    y_axis = "yAxis"
+
+    subject = get_diagram_output(
+        points_to_plot, outliers_to_plot, max_xval, max_yval, x_axis, y_axis
+    )
+
+    # Then
+    assert subject == "yAxis\n|\n|\n|\n----xAxis"
+
+    # When
+    points_to_plot = {0: None, 1: None, 2: None, 3: None, 4: None, 5: [0], 6: [0]}
+    outliers_to_plot = {0: None, 1: None, 2: None, 3: None, 4: None, 5: [0], 6: [1]}
+    max_xval = 5
+    max_yval = 6
+    x_axis = "xAxis"
+    y_axis = "yAxis"
+
+    subject = get_diagram_output(
+        points_to_plot, outliers_to_plot, max_xval, max_yval, x_axis, y_axis
+    )
+
+    # Then
+    assert subject == "yAxis\n|XO    \n|O     \n|\n|\n|\n|\n|\n------xAxis"
+
+
 def test_keep_only_files_with_correct_ending():
     subject = keep_only_files_with_correct_endings(
         ["test.py", "yada.py", "keepMe.txt", "DontKeepMe.cpp"], [".txt", ".py"]

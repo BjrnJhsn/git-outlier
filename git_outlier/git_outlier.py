@@ -75,24 +75,27 @@ def get_diagram_output(
     points_to_plot, outliers_to_plot, max_xval, max_yval, x_axis, y_axis
 ):
     output = ""
-    output = output + x_axis + "\n"
+    output = output + y_axis + "\n"
     for y_val in range(max_yval, -1, -1):
         output = output + "|"
         if points_to_plot[y_val] or outliers_to_plot[y_val] is not None:
             for x_val in range(0, max_xval + 1, 1):
-                if points_to_plot[y_val] is not None and x_val in points_to_plot[y_val]:
-                    output = output + "X"
-                elif (
+                if (
                     outliers_to_plot[y_val] is not None
                     and x_val in outliers_to_plot[y_val]
                 ):
                     output = output + "O"
+                elif (
+                    points_to_plot[y_val] is not None and x_val in points_to_plot[y_val]
+                ):
+                    output = output + "X"
+
                 else:
                     output = output + " "
         output = output + "\n"
     for x_val in range(0, max_xval + 1, 1):
         output = output + "-"
-    output = output + y_axis
+    output = output + x_axis
     return output
 
 
