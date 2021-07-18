@@ -335,9 +335,10 @@ def get_file_endings_for_languages(languages):
 
 def parse_arguments(incoming):
     parser = argparse.ArgumentParser(
-        description="""Analyze a source directory that uses git as version handling system. The source files
-        are analyzed for outliers and these outliers can be good candidates for refactoring to increase
-        maintainability. The source files are ranked in falling order after churn, complexity, and combined churn 
+        description="""Analyze a source directory that uses git as version handling system. The source files 
+        are analyzed for different type of outliers and these outliers can be good candidates
+        for refactoring to increase maintainability. The source files are ranked in falling order after churn,
+        complexity, and combined churn 
         and complexity."""
     )
     parser.add_argument(
@@ -363,7 +364,12 @@ def parse_arguments(incoming):
         default=12,
         type=int,
     )
-    parser.add_argument("path")
+    parser.add_argument(
+        "path",
+        nargs="?",
+        default=".",
+        help="The path to the source directory to be analyzed. Will default to current directory if not present.",
+    )
     args = parser.parse_args(incoming)
 
     if args.span and args.span < 1 or args.span > 100:

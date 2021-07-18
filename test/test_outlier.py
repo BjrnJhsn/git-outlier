@@ -8,6 +8,12 @@ def test_get_file_name_from_git_log_line():
     # Then
     assert subject == "filename"
 
+    # When
+    subject = get_file_name_from_git_log_line("1 2")
+
+    # Then
+    assert subject == ""
+
 
 def test_get_file_occurences_from_git_log():
     # When
@@ -72,7 +78,14 @@ def test_argument_parser():
     subject = parse_arguments(".")
     assert subject.span == 12
     assert subject.languages == ["python"]
+    assert subject.path == "."
+
+    subject = parse_arguments("")
+    assert subject.span == 12
+    assert subject.languages == ["python"]
+    assert subject.path == "."
 
     subject = parse_arguments([".", "-l", "cpp", "-l", "python"])
     assert subject.span == 12
     assert subject.languages == ["cpp", "python"]
+    assert subject.path == "."
