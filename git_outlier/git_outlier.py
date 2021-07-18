@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 
 
 def get_git_log_in_current_directory(start_date):
-    pipe = subprocess.PIPE
+    pipe =   subprocess.PIPE
 
     git_command = [
         "git",
