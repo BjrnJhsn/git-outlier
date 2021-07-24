@@ -1,4 +1,5 @@
 from git_outlier.git_outlier import *
+from unittest.mock import patch
 
 
 def test_get_file_name_from_git_log_line():
@@ -136,3 +137,12 @@ def test_argument_parser():
     assert subject.span == 12
     assert subject.languages == ["cpp", "python"]
     assert subject.path == "."
+
+
+@patch("git_outlier.git_outlier.run_analyzer_on_file")
+@patch("os.path.isfile", return_value=True)
+def test_get_complexity_for_file_list(mock_io, mock_run_analyzer):
+    assert mock_io is os.path.isfile
+    file_list = ["test.py"]
+    subject = get_complexity_for_file_list(["test.py"], "CCN")
+    mock_io.assert_called_once_with(file_list[0])

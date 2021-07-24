@@ -1,6 +1,24 @@
 # git-outlier
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+## Introduction
+Run git-outlier to find source code files that are suitable candidates for refactoring.
+git-outlier finds outliers in a source code directory under git version control in three categories: complexity, churn, and
+combined complexity and churn. The top files are worthy of further investigation.
+
+## Installation
+
+The latest release will be available via PyPI in the near future.
+
+## Usage
+
+If installed as a package, it should be directly available as
+```
+git outlier
+```
+and use the same options as the python script.
+
+The python script can be run with the follwing options.
 ```
 usage: git_outlier.py [-h] [--languages LANGUAGES] [--metric METRIC] [--span SPAN] [path]
 
@@ -21,3 +39,10 @@ optional arguments:
                         comments 'NLOC'. If not specified, the default is 'CCN.
   --span SPAN, -s SPAN  The number (integer) of months the analysis will look at. Default is 12 months.
 ```
+
+
+
+## Background
+The idea comes from Michael Feathers' article [Getting Empirical about Refactoring](https://www.agileconnection.com/article/getting-empirical-about-refactoring).
+
+The code complexity is computed using [lizard](http://www.lizard.ws/).
