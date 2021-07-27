@@ -217,6 +217,15 @@ def print_small_separator():
 def print_churn_and_complexity_outliers(
     complexity, file_occurence, filtered_file_names, complexity_metric, start_date
 ):
+    outlier_output, plot_output = prepare_churn_and_complexity_outliers_output(
+        complexity, complexity_metric, file_occurence, filtered_file_names
+    )
+    print_plot_and_outliers(plot_output, outlier_output, start_date)
+
+
+def prepare_churn_and_complexity_outliers_output(
+    complexity, complexity_metric, file_occurence, filtered_file_names
+):
     analysis_result = combine_churn_and_complexity(
         file_occurence, complexity, filtered_file_names
     )
@@ -227,7 +236,6 @@ def print_churn_and_complexity_outliers(
     points_to_plot, outliers_to_plot, outliers = convert_analysis_to_plot_data(
         analysis_result, x_label, y_label, max_x_output, max_y_output
     )
-
     plot_output = get_diagram_output(
         points_to_plot,
         outliers_to_plot,
@@ -237,8 +245,7 @@ def print_churn_and_complexity_outliers(
         "Complexity(" + str(complexity_metric) + ")",
     )
     outlier_output = get_outliers_output(outliers)
-
-    print_plot_and_outliers(plot_output, outlier_output, start_date)
+    return outlier_output, plot_output
 
 
 def print_plot_and_outliers(diagram_output, outlier_output, start_date):
@@ -359,7 +366,8 @@ def parse_arguments(incoming):
         "--metric",
         "-m",
         help="Choose the complexity metric you would like to base the results on. Either cyclomatic"
-        "complexity 'CCN' or lines of code without comments 'NLOC'. If not specified, the default is 'CCN.",
+        " complexity 'CCN' or lines of code without comments 'NLOC'. If not specified,"
+        " the default is 'CCN.",
         default="CCN",
     )
     parser.add_argument(
@@ -373,7 +381,8 @@ def parse_arguments(incoming):
         "path",
         nargs="?",
         default=".",
-        help="The path to the source directory to be analyzed. Will default to current directory if not present.",
+        help="The path to the source directory to be analyzed. Will default to current "
+        "directory if not present.",
     )
     args = parser.parse_args(incoming)
 
