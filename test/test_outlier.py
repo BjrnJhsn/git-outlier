@@ -177,10 +177,13 @@ def test_convert_analysis_to_plot_data():
     assert outliers_to_plot[max_y_output] == [max_x_output]
     assert points_to_plot[0] == [round(1 / 10 * max_x_output)]
 
+
 def test_combine_churn_and_complexity():
-    file_occurence = {"test1":2}
-    complexity = {"test1":4}
+    file_occurence = {"test1": 2}
+    complexity = {"test1": 4}
     filtered_file_names = ["test1", "test2"]
-    subject = combine_churn_and_complexity(file_occurence, complexity, filtered_file_names)
+    subject = combine_churn_and_complexity(
+        file_occurence, complexity, filtered_file_names
+    )
     assert subject["test1"]["Churn"] == 2
     assert subject["test1"]["Complexity"] == 4
