@@ -138,6 +138,7 @@ def test_argument_parser():
     assert subject.languages == ["cpp", "python"]
     assert subject.path == "."
 
+
 @patch("sys.exit")
 @patch("git_outlier.git_outlier.run_analyzer_on_file")
 @patch("os.path.isfile", return_value=True)

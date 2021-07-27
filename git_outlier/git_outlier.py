@@ -99,9 +99,7 @@ def get_diagram_output(
     return output
 
 
-def prepare_plot_data(
-    data, x_label, y_label, max_x_output, max_y_output
-):
+def convert_analysis_to_plot_data(data, x_label, y_label, max_x_output, max_y_output):
     y_max = 0
     x_max = 0
     for value in data.values():
@@ -220,34 +218,40 @@ def print_small_separator():
 def print_churn_and_complexity_outliers(
     complexity, file_occurence, filtered_file_names, complexity_metric, start_date
 ):
-    result = combine_churn_and_complexity(
+    analysis_result = combine_churn_and_complexity(
         file_occurence, complexity, filtered_file_names
     )
     x_label = "Complexity"
     y_label = "Churn"
     max_x_output = 60
     max_y_output = 20
-    points_to_plot, outliers_to_plot, outliers = prepare_plot_data(
-        result, x_label, y_label, max_x_output, max_y_output
+    points_to_plot, outliers_to_plot, outliers = convert_analysis_to_plot_data(
+        analysis_result, x_label, y_label, max_x_output, max_y_output
     )
+
+    plot_output = get_diagram_output(
+        points_to_plot,
+        outliers_to_plot,
+        max_x_output,
+        max_y_output,
+        "Churn",
+        "Complexity(" + str(complexity_metric) + ")",
+    )
+    outlier_output = get_outliers_output(outliers)
+
+    print_plot_and_outliers(plot_output, outlier_output, start_date)
+
+
+def print_plot_and_outliers(diagram_output, outlier_output, start_date):
     print_headline("Churn vs complexity outliers")
     print_subsection(
         "Plot of churn vs complexity for all files since "
         + start_date
         + ". Outliers are marked with O"
     )
-    print(
-        get_diagram_output(
-            points_to_plot,
-            outliers_to_plot,
-            max_x_output,
-            max_y_output,
-            "Churn",
-            "Complexity(" + str(complexity_metric) + ")",
-        )
-    )
+    print(diagram_output)
     print_subsection("Detected outliers (marked with O in the outlier plot)")
-    print(get_outliers_output(outliers))
+    print(outlier_output)
 
 
 def print_complexity_outliers(complexity, complexity_metric, start_date, endings):
