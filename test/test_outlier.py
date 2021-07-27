@@ -138,11 +138,15 @@ def test_argument_parser():
     assert subject.languages == ["cpp", "python"]
     assert subject.path == "."
 
-
+@patch("sys.exit")
 @patch("git_outlier.git_outlier.run_analyzer_on_file")
 @patch("os.path.isfile", return_value=True)
-def test_get_complexity_for_file_list(mock_io, mock_run_analyzer):
+def test_get_complexity_for_file_list(mock_io, mock_run_analyzer, mock_sys_exit):
     assert mock_io is os.path.isfile
     file_list = ["test.py"]
-    subject = get_complexity_for_file_list(["test.py"], "CCN")
+    subject = get_complexity_for_file_list(file_list, "CCN")
     mock_io.assert_called_once_with(file_list[0])
+    mock_run_analyzer.assert_called_once_with("test.py")
+
+    subject = get_complexity_for_file_list(["test.py"], "Does not exist")
+    mock_sys_exit.assert_called_once()
