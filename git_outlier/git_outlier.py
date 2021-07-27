@@ -100,7 +100,7 @@ def get_diagram_output(
 
 
 def prepare_plot_data(
-    data, x_label="Complexity", y_label="Churn", max_x_output=70, max_y_output=25
+    data, x_label, y_label, max_x_output, max_y_output
 ):
     y_max = 0
     x_max = 0
@@ -217,7 +217,7 @@ def print_small_separator():
     print("\n============================================================n")
 
 
-def churn_and_complexity_outliers(
+def print_churn_and_complexity_outliers(
     complexity, file_occurence, filtered_file_names, complexity_metric, start_date
 ):
     result = combine_churn_and_complexity(
@@ -250,7 +250,7 @@ def churn_and_complexity_outliers(
     print(get_outliers_output(outliers))
 
 
-def complexity_outliers(complexity, complexity_metric, start_date, endings=[".py"]):
+def print_complexity_outliers(complexity, complexity_metric, start_date, endings):
     top_complexity = 10
     print_headline("Complexity outliers")
     print_subsection(
@@ -271,7 +271,7 @@ def complexity_outliers(complexity, complexity_metric, start_date, endings=[".py
         print(f"{str(items[1]):11}{items[0]:10}")
 
 
-def churn_outliers(start_date, file_occurence, endings=[".py"]):
+def print_churn_outliers(start_date, file_occurence, endings):
     top_churners = 10
     print_headline("Churn outliers")
     print_subsection(
@@ -448,11 +448,11 @@ def main():
 
     switch_back_original_directory(startup_path)
 
-    churn_outliers(start_date, file_occurence, endings)
+    print_churn_outliers(start_date, file_occurence, endings)
 
-    complexity_outliers(computed_complexity, options.metric, start_date, endings)
+    print_complexity_outliers(computed_complexity, options.metric, start_date, endings)
 
-    churn_and_complexity_outliers(
+    print_churn_and_complexity_outliers(
         computed_complexity,
         file_occurence,
         filtered_file_names,
