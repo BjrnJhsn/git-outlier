@@ -5,9 +5,9 @@ import subprocess
 import os
 import argparse
 import sys
-import lizard
 from datetime import date
 from dateutil.relativedelta import relativedelta
+import lizard
 
 
 def get_git_log_in_current_directory(start_date):
@@ -45,8 +45,7 @@ def get_file_name_from_git_log_line(line):
     parts = line.split()
     if len(parts) >= 3:
         return parts[2]
-    else:
-        return ""
+    return ""
 
 
 def get_file_occurences_from_git_log(log):
@@ -254,8 +253,9 @@ def print_plot_and_outliers(diagram_output, outlier_output, start_date):
     print(outlier_output)
 
 
-def print_complexity_outliers(complexity, complexity_metric, start_date, endings):
-    top_complexity = 10
+def print_complexity_outliers(
+    complexity, complexity_metric, start_date, endings, top_complexity=10
+):
     print_headline("Complexity outliers")
     print_subsection(
         "The top "
@@ -269,14 +269,12 @@ def print_complexity_outliers(complexity, complexity_metric, start_date, endings
     cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
         ordered_list_with_files(complexity), endings
     )
-    left_spacing = 11
-    print(f"Complexity Filenames")
+    print("Complexity Filenames")
     for items in cleaned_ordered_list_with_files[0:top_complexity]:
         print(f"{str(items[1]):11}{items[0]:10}")
 
 
-def print_churn_outliers(start_date, file_occurence, endings):
-    top_churners = 10
+def print_churn_outliers(start_date, file_occurence, endings, top_churners=10):
     print_headline("Churn outliers")
     print_subsection(
         "The top "
@@ -288,7 +286,7 @@ def print_churn_outliers(start_date, file_occurence, endings):
     cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
         ordered_list_with_files(file_occurence), endings
     )
-    print(f"Changes Filenames")
+    print("Changes Filenames")
     for items in cleaned_ordered_list_with_files[0:top_churners]:
         print(f"{str(items[1]):8}{items[0]:10}")
 
@@ -332,7 +330,7 @@ def get_supported_languages():
 def get_file_endings_for_languages(languages):
     supported_languages = get_supported_languages()
     language_file_endings = []
-    if type(languages) is not list:
+    if not isinstance(languages, list):
         languages = [languages]
     for language in languages:
         if language in supported_languages:
@@ -342,10 +340,10 @@ def get_file_endings_for_languages(languages):
 
 def parse_arguments(incoming):
     parser = argparse.ArgumentParser(
-        description="""Analyze a source directory that uses git as version handling system. The source files 
-        are analyzed for different type of outliers and these outliers can be good candidates
-        for refactoring to increase maintainability. The source files are ranked in falling order after churn,
-        complexity, and combined churn 
+        description="""Analyze a source directory that uses git as version handling system.
+        The source files are analyzed for different type of outliers and these outliers can 
+        be good candidates for refactoring to increase maintainability. The source files 
+        are ranked in falling order after churn, complexity, and combined churn 
         and complexity."""
     )
     parser.add_argument(
@@ -429,7 +427,7 @@ def switch_back_original_directory(path):
 
 def get_start_date(span_in_months):
     today = date.today()
-    if type(span_in_months) is list:
+    if isinstance(span_in_months, list):
         span_in_months = span_in_months[0]
     assert span_in_months >= 0
     start = today + relativedelta(months=-span_in_months)
