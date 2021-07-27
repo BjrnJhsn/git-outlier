@@ -151,3 +151,36 @@ def test_get_complexity_for_file_list(mock_io, mock_run_analyzer, mock_sys_exit)
 
     subject = get_complexity_for_file_list(["test.py"], "Does not exist")
     mock_sys_exit.assert_called_once()
+
+
+def test_convert_analysis_to_plot_data():
+    data = {}
+    churn = {"outlier1": 10, "test2": 1, "outlier2": 10}
+    complexity = {"outlier1": 5, "test2": 0, "outlier2": 5}
+
+    x_label = "Churn"
+    y_label = "Complexity"
+    for file_name in ["outlier1", "test2", "outlier2"]:
+        if file_name in churn and file_name in complexity:
+            data[file_name] = {
+                x_label: churn[file_name],
+                y_label: complexity[file_name],
+            }
+    max_x_output = 21
+    max_y_output = 50
+    points_to_plot, outliers_to_plot, outliers = convert_analysis_to_plot_data(
+        data, x_label, y_label, max_x_output, max_y_output
+    )
+
+    assert "outlier1" in outliers
+    assert "outlier2" in outliers
+    assert outliers_to_plot[max_y_output] == [max_x_output]
+    assert points_to_plot[0] == [round(1 / 10 * max_x_output)]
+
+def test_combine_churn_and_complexity():
+    file_occurence = {"test1":2}
+    complexity = {"test1":4}
+    filtered_file_names = ["test1", "test2"]
+    subject = combine_churn_and_complexity(file_occurence, complexity, filtered_file_names)
+    assert subject["test1"]["Churn"] == 2
+    assert subject["test1"]["Complexity"] == 4
