@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-
+import logging
 import subprocess
 import os
 import argparse
@@ -30,12 +30,12 @@ def get_git_log_in_current_directory(start_date):
         )
         stdoutput, stderroutput = process.communicate()
     except OSError as err:
-        print("OS error: {0}".format(err))
+        logging.error("OS error: {0}".format(err))
         sys.exit(1)
     except:
-        print("Unexpected error: ", sys.exc_info()[0])
-        print("Trying to execute the following subprocess: " + str(git_command))
-        print("Git problem, exiting...")
+        logging.error("Unexpected error: ", sys.exc_info()[0])
+        logging.error("Trying to execute the following subprocess: " + str(git_command))
+        logging.error("Git problem, exiting...")
         sys.exit(1)
 
     return stdoutput
@@ -152,14 +152,14 @@ def get_complexity_for_file_list(file_list, complexity_metric):
     complexity = {}
     for file_name in file_list:
         if os.path.isfile(file_name):
-            print("Analyzing " + str(file_name))
+            logging.info("Analyzing " + str(file_name))
             result = run_analyzer_on_file(file_name)
             if complexity_metric == "CCN":
                 complexity[file_name] = result.CCN
             elif complexity_metric == "NLOC":
                 complexity[file_name] = result.nloc
             else:
-                print("Internal error: Unknown complexity metric specified")
+                logging.error("Internal error: Unknown complexity metric specified")
                 sys.exit(1)
     return complexity
 
@@ -311,11 +311,9 @@ def get_git_and_complexity_data(endings, complexity_metric, start_date):
 
 def get_supported_languages():
     return {
-        "objective-c": [".m", ".mm"],
-        "lua": [".lua"],
-        "javascript": [".js"],
-        "java": [".java"],
-        "go": [".go"],
+        "c": [".c", ".h"],
+        "cpp": [".cpp", ".cc", ".mm", ".cxx", ".h", ".hpp"],
+        "csharp": [".cs"],
         "fortran": [
             ".f70",
             ".f90",
@@ -327,10 +325,18 @@ def get_supported_languages():
             ".ftn",
             ".fpp",
         ],
-        "c": [".c", ".h"],
-        "cpp": [".cpp", ".cc", ".mm", ".cxx", ".h", ".hpp"],
+        "go": [".go"],
+        "java": [".java"],
+        "javascript": [".js"],
+        "lua": [".lua"],
+        "objective-c": [".m", ".mm"],
+        "php": [".php"],
         "python": [".py"],
-        "csharp": [".cs"],
+        "ruby": [".rb"],
+        "rust": [".rs"],
+        "scala": [".scala"],
+        "swift": [".swift"],
+        "typescript": [".ts"],
     }
 
 
@@ -353,13 +359,16 @@ def parse_arguments(incoming):
         are ranked in falling order after churn, complexity, and combined churn 
         and complexity."""
     )
+    supported_languages = get_supported_languages()
+    supported_languages_list = [*supported_languages]
     parser.add_argument(
         "--languages",
         "-l",
         action="append",
-        help="List the programming languages you want to analyze. if left empty, it'll"
-        "search for python. 'outlier -l cpp -l python'searches for"
-        "C++ and Python code. The available languages are: cpp, python",
+        help="List the programming languages you want to analyze. If left empty, it'll"
+        " search for all recognized languages. Example: 'outlier -l cpp -l python' searches for"
+        " C++ and Python code. The available languages are: "
+        + ", ".join(supported_languages),
         type=str,
     )
     parser.add_argument(
@@ -378,12 +387,22 @@ def parse_arguments(incoming):
         type=int,
     )
     parser.add_argument(
+        "--top",
+        "-t",
+        help="The number (integer) of outliers to show. Note that for the combined churn and complexity outliers,"
+        " there is no maximum. Default is 10.",
+        default=10,
+        type=int,
+    )
+    parser.add_argument(
         "path",
         nargs="?",
         default=".",
         help="The path to the source directory to be analyzed. Will default to current "
         "directory if not present.",
     )
+    parser.add_argument("-v", "--verbose", action="count", default=0)
+
     args = parser.parse_args(incoming)
 
     if args.span and args.span < 1 or args.span > 100:
@@ -397,14 +416,20 @@ def parse_arguments(incoming):
             + str(ok_metrics)
         )
 
-    # Need to fix :-)
-    if args.languages is None:
-        args.languages = ["python"]
-
     supported_languages = get_supported_languages()
     supported_languages_list = [*supported_languages]
+
+    # Need to fix :-)
+    if args.languages is None:
+        args.languages = supported_languages_list
+
     if not all(elem in supported_languages_list for elem in args.languages):
         parser.error("Unsupported languages: " + str(args.languages))
+
+    levels = [logging.WARNING, logging.INFO, logging.DEBUG]
+    args.level = levels[
+        min(len(levels) - 1, args.verbose)
+    ]  # capped to number of levels
 
     return args
 
@@ -415,10 +440,10 @@ def switch_to_correct_path_and_save_current(path_to_switch):
         expanded_path = os.path.expanduser(path_to_switch)
         os.chdir(expanded_path)
     except OSError as err:
-        print("OS error: {0}".format(err))
+        logging.error("OS error: {0}".format(err))
         sys.exit(1)
     except:
-        print("Unexpected error:", sys.exc_info()[0])
+        logging.error("Unexpected error:", sys.exc_info()[0])
         sys.exit(1)
     return startup_path
 
@@ -427,10 +452,10 @@ def switch_back_original_directory(path):
     try:
         os.chdir(path)
     except OSError as err:
-        print("OS error: {0}".format(err))
+        logging.error("OS error: {0}".format(err))
         sys.exit(1)
     except:
-        print("Unexpected error:", sys.exc_info()[0])
+        logging.error("Unexpected error:", sys.exc_info()[0])
         sys.exit(1)
 
 
@@ -446,6 +471,9 @@ def get_start_date(span_in_months):
 def main():
 
     options = parse_arguments(sys.argv[1:])
+    logging.basicConfig(
+        level=options.level, format="%(asctime)s %(levelname)s %(message)s"
+    )
 
     startup_path = switch_to_correct_path_and_save_current(options.path)
 
@@ -459,9 +487,11 @@ def main():
 
     switch_back_original_directory(startup_path)
 
-    print_churn_outliers(start_date, file_occurence, endings)
+    print_churn_outliers(start_date, file_occurence, endings, options.top)
 
-    print_complexity_outliers(computed_complexity, options.metric, start_date, endings)
+    print_complexity_outliers(
+        computed_complexity, options.metric, start_date, endings, options.top
+    )
 
     print_churn_and_complexity_outliers(
         computed_complexity,

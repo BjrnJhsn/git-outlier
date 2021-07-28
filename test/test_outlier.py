@@ -123,14 +123,16 @@ def test_get_file_endings_for_languages():
 
 
 def test_argument_parser():
+    supported_languages = get_supported_languages()
+    supported_languages_list = [*supported_languages]
     subject = parse_arguments(".")
     assert subject.span == 12
-    assert subject.languages == ["python"]
+    assert subject.languages == supported_languages_list
     assert subject.path == "."
 
     subject = parse_arguments("")
     assert subject.span == 12
-    assert subject.languages == ["python"]
+    assert subject.languages == supported_languages_list
     assert subject.path == "."
 
     subject = parse_arguments([".", "-l", "cpp", "-l", "python"])

@@ -10,11 +10,16 @@ Still under development and not yet ready to be used.
 
 ## Introduction
 Run git-outlier to find source code files that are suitable candidates for refactoring.
-git-outlier finds outliers in a source code directory under git version control in three categories: complexity, churn, and
-combined complexity and churn. The top files are worthy of further investigation.
+git-outlier finds outliers in a source code directory under git version control in three categories: complexity, churn,
+and  combined complexity and churn. The top files are worthy of further investigation. The combined complexity and
+churn outliers should be the top candidates for refactoring. 
 
 The source code is analyzed per file, so this requires your project to contain multiple source code files 
 with logic entities in separate files to make sense.
+
+There are different metrics of complexity available. Choose the one that makes most sense for you or try both. Files
+that are outliers
+regardless of chosen complexity metrics are top candidates for refactoring.
 
 ## Installation
 
@@ -50,9 +55,26 @@ optional arguments:
   --span SPAN, -s SPAN  The number (integer) of months the analysis will look at. Default is 12 months.
 ```
 
-
-
-## Background
-The idea comes from Michael Feathers' article [Getting Empirical about Refactoring](https://www.agileconnection.com/article/getting-empirical-about-refactoring).
+## Supported languages
+Supported languages
+- C
+- C++
+- C#
+- Fortran
+- Go
+- Java
+- JavaScript
+- Lua 
+- Objective-c
+- Php
+- Python
+- Ruby
+- Rust
+- Scala
+- Swift
+- TypeScript
 
 The code complexity is computed using [lizard](http://www.lizard.ws/).
+## References
+The idea comes from Michael Feathers' article [Getting Empirical about Refactoring](https://www.agileconnection.com/article/getting-empirical-about-refactoring).
+
