@@ -2,6 +2,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![codecov](https://codecov.io/gh/BjrnJhsn/git-outlier/branch/main/graph/badge.svg?token=UJXXUA0Q9D)](https://codecov.io/gh/BjrnJhsn/git-outlier)
 ![example workflow](https://github.com/BjrnJhsn/git-outlier/actions/workflows/python-app.yml/badge.svg)
+[![PyPI version](https://badge.fury.io/py/git-outlier.svg)](https://badge.fury.io/py/git-outlier)
 
 
 Data-driven screening to find source code that need refactoring.
