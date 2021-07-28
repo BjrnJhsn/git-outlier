@@ -21,6 +21,7 @@ def get_git_log_in_current_directory(start_date):
         "--since=" + start_date,
         "--pretty=",
     ]
+    logging.info("Git command: " + str(git_command))
     try:
         process = subprocess.Popen(
             git_command,
@@ -231,7 +232,7 @@ def prepare_churn_and_complexity_outliers_output(
     )
     x_label = "Complexity"
     y_label = "Churn"
-    max_x_output = 60
+    max_x_output = 80
     max_y_output = 20
     points_to_plot, outliers_to_plot, outliers = convert_analysis_to_plot_data(
         analysis_result, x_label, y_label, max_x_output, max_y_output

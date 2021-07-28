@@ -1,5 +1,6 @@
 from git_outlier.git_outlier import *
 from unittest.mock import patch
+from unittest.mock import Mock
 
 
 def test_get_file_name_from_git_log_line():
@@ -141,6 +142,14 @@ def test_argument_parser():
     assert subject.path == "."
 
 
+def test_get_outliers_output():
+    subject = get_outliers_output([])
+    assert subject == "No outliers were found.\n"
+
+    subject = get_outliers_output(["foo", "bar"])
+    assert subject == "foo\nbar\n"
+
+
 @patch("sys.exit")
 @patch("git_outlier.git_outlier.run_analyzer_on_file")
 @patch("os.path.isfile", return_value=True)
@@ -189,3 +198,17 @@ def test_combine_churn_and_complexity():
     )
     assert subject["test1"]["Churn"] == 2
     assert subject["test1"]["Complexity"] == 4
+
+
+@patch("subprocess.Popen")
+def test_get_git_log_in_current_directory(mock_subprocess_popen):
+    assert mock_subprocess_popen is subprocess.Popen
+    process = Mock()
+    process.communicate.return_value = "foo", "bar"
+    mock_subprocess_popen.return_value = process
+    subject = get_git_log_in_current_directory("12345")
+
+    assert subject == "foo"
+    mock_subprocess_popen.assert_called_once_with(['git', 'log', '--numstat', '--no-merges', '--since=12345', '--pretty='], stdout=-1, stderr=-1, universal_newlines=True)
+
+
