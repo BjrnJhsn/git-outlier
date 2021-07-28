@@ -377,7 +377,7 @@ def parse_arguments(incoming):
         "-m",
         help="Choose the complexity metric you would like to base the results on. Either cyclomatic"
         " complexity 'CCN' or lines of code without comments 'NLOC'. If not specified,"
-        " the default is 'CCN.",
+        " the default is 'CCN'.",
         default="CCN",
     )
     parser.add_argument(
@@ -402,7 +402,13 @@ def parse_arguments(incoming):
         help="The path to the source directory to be analyzed. Will default to current "
         "directory if not present.",
     )
-    parser.add_argument("-v", "--verbose", action="count", default=0)
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Show analysis details and debug info.",
+    )
 
     args = parser.parse_args(incoming)
 
