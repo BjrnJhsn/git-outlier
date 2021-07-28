@@ -209,6 +209,9 @@ def test_get_git_log_in_current_directory(mock_subprocess_popen):
     subject = get_git_log_in_current_directory("12345")
 
     assert subject == "foo"
-    mock_subprocess_popen.assert_called_once_with(['git', 'log', '--numstat', '--no-merges', '--since=12345', '--pretty='], stdout=-1, stderr=-1, universal_newlines=True)
-
-
+    mock_subprocess_popen.assert_called_once_with(
+        ["git", "log", "--numstat", "--no-merges", "--since=12345", "--pretty="],
+        stdout=-1,
+        stderr=-1,
+        universal_newlines=True,
+    )
