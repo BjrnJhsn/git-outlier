@@ -49,18 +49,18 @@ def get_file_name_from_git_log_line(line):
     return ""
 
 
-def get_file_occurences_from_git_log(log):
-    file_occurences = {}
+def get_file_churn_from_git_log(log):
+    churn = {}
     file_names = []
     for line in log.splitlines():
         file_name = get_file_name_from_git_log_line(line)
         if file_name != "":
-            if file_name in file_occurences:
-                file_occurences[file_name] += 1
+            if file_name in churn:
+                churn[file_name] += 1
             else:
-                file_occurences[file_name] = 1
+                churn[file_name] = 1
                 file_names.append(file_name)
-    return file_occurences, file_names
+    return churn, file_names
 
 
 def ordered_list_with_files(dictionary_file_name_occurence):
@@ -169,12 +169,12 @@ def run_analyzer_on_file(file_name):
     return lizard.analyze_file(file_name)
 
 
-def combine_churn_and_complexity(file_occurence, complexity, filtered_file_names):
+def combine_churn_and_complexity(churn, complexity, filtered_file_names):
     result = {}
     for file_name in filtered_file_names:
-        if file_name in file_occurence and file_name in complexity:
+        if file_name in churn and file_name in complexity:
             result[file_name] = {
-                "Churn": file_occurence[file_name],
+                "Churn": churn[file_name],
                 "Complexity": complexity[file_name],
             }
     return result
@@ -216,19 +216,19 @@ def print_small_separator():
 
 
 def print_churn_and_complexity_outliers(
-    complexity, file_occurence, filtered_file_names, complexity_metric, start_date
+    complexity, churn, filtered_file_names, complexity_metric, start_date
 ):
     outlier_output, plot_output = prepare_churn_and_complexity_outliers_output(
-        complexity, complexity_metric, file_occurence, filtered_file_names
+        complexity, complexity_metric, churn, filtered_file_names
     )
     print_plot_and_outliers(plot_output, outlier_output, start_date)
 
 
 def prepare_churn_and_complexity_outliers_output(
-    complexity, complexity_metric, file_occurence, filtered_file_names
+    complexity, complexity_metric, churn, filtered_file_names
 ):
     analysis_result = combine_churn_and_complexity(
-        file_occurence, complexity, filtered_file_names
+        churn, complexity, filtered_file_names
     )
     x_label = "Complexity"
     y_label = "Churn"
@@ -284,7 +284,7 @@ def print_complexity_outliers(
         print(f"{str(items[1]):11}{items[0]:10}")
 
 
-def print_churn_outliers(start_date, file_occurence, endings, top_churners=10):
+def print_churn_outliers(start_date, churn, endings, top_churners=10):
     print_headline("Churn outliers")
     print_subsection(
         "The top "
@@ -294,7 +294,7 @@ def print_churn_outliers(start_date, file_occurence, endings, top_churners=10):
         + ":"
     )
     cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
-        ordered_list_with_files(file_occurence), endings
+        ordered_list_with_files(churn), endings
     )
     print("Changes Filenames")
     for items in cleaned_ordered_list_with_files[0:top_churners]:
@@ -304,12 +304,12 @@ def print_churn_outliers(start_date, file_occurence, endings, top_churners=10):
 def get_git_and_complexity_data(endings, complexity_metric, start_date):
     all_of_it = get_git_log_in_current_directory(start_date)
     print("Retrieving git log...")
-    file_occurence, file_names = get_file_occurences_from_git_log(all_of_it)
+    churn, file_names = get_file_churn_from_git_log(all_of_it)
     filtered_file_names = keep_only_files_with_correct_endings(file_names, endings)
     print("Computing complexity...")
     complexity = get_complexity_for_file_list(filtered_file_names, complexity_metric)
     print(str(len(filtered_file_names)) + " files analyzed.")
-    return complexity, file_occurence, filtered_file_names
+    return complexity, churn, filtered_file_names
 
 
 def get_supported_languages():
@@ -490,13 +490,13 @@ def main():
     start_date = get_start_date(options.span)
     (
         computed_complexity,
-        file_occurence,
+        churn,
         filtered_file_names,
     ) = get_git_and_complexity_data(endings, options.metric, start_date)
 
     switch_back_original_directory(startup_path)
 
-    print_churn_outliers(start_date, file_occurence, endings, options.top)
+    print_churn_outliers(start_date, churn, endings, options.top)
 
     print_complexity_outliers(
         computed_complexity, options.metric, start_date, endings, options.top
@@ -504,7 +504,7 @@ def main():
 
     print_churn_and_complexity_outliers(
         computed_complexity,
-        file_occurence,
+        churn,
         filtered_file_names,
         options.metric,
         start_date,
