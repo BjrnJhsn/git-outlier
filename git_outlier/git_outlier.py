@@ -232,18 +232,20 @@ def prepare_churn_and_complexity_outliers_output(
     )
     x_label = "Complexity"
     y_label = "Churn"
-    max_x_output = 80
-    max_y_output = 20
+    max_x_output = 70
+    max_y_output = 30
     points_to_plot, outliers_to_plot, outliers = convert_analysis_to_plot_data(
         analysis_result, x_label, y_label, max_x_output, max_y_output
     )
+    x_label_to_print = x_label + "(" + str(complexity_metric) + ")"
+    y_label_to_print = y_label
     plot_output = get_diagram_output(
         points_to_plot,
         outliers_to_plot,
         max_x_output,
         max_y_output,
-        "Churn",
-        "Complexity(" + str(complexity_metric) + ")",
+        x_label_to_print,
+        y_label_to_print
     )
     outlier_output = get_outliers_output(outliers)
     return outlier_output, plot_output
