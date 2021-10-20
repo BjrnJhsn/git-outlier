@@ -10,20 +10,25 @@ Data-driven screening to find source code that need refactoring.
 Still under development and not yet ready to be used.
 
 ## Introduction
-Run git-outlier to find source code files that are suitable candidates for refactoring.
+Run git-outlier to find source code files that may benefit from refactoring.
 git-outlier finds outliers in a source code directory under git version control in three categories: complexity, churn,
 and  combined complexity and churn. The top files are worthy of further investigation. 
 
-The combined complexity and churn outliers should be the top candidates for refactoring. The complexity and churn plot
-is divided into four equal zones. All zones are ok to be in except the right-top-zone; these files are both complex and 
-change often. The source code in these files will probably be easier to change and maintain if they are refactored.
+The combined complexity and churn outliers are the top candidates for refactoring. The complexity and churn plot
+is divided into four equal zones:
+- Low churn, low complexity. Files in this zone are ok.
+- Low churn, high complexity. Files in this zone are ok.
+- High churn, low complexity. Files in this zone are ok.
+- High churn, high complexity. **Files in this zone are candidates for refactoring.**
+
+The files in the high churn, high complexity zone are both complex and 
+change often. The source code in these files will probably be easier to extend and maintain if they are refactored.
 
 The source code is analyzed per file, so this requires your project to contain multiple source code files 
 with logic entities in separate files to make sense.
 
 There are different metrics of complexity available. Choose the one that makes most sense for you or try both. Files
-that are outliers
-regardless of chosen complexity metrics are top candidates for refactoring.
+that are outliers regardless of chosen complexity metrics are top candidates for refactoring.
 
 ## Installation
 
