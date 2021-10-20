@@ -88,7 +88,7 @@ def get_diagram_output(
                 elif (
                     points_to_plot[y_val] is not None and x_val in points_to_plot[y_val]
                 ):
-                    output = output + "X"
+                    output = output + "."
 
                 else:
                     output = output + " "

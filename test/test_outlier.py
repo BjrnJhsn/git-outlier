@@ -19,7 +19,7 @@ def test_get_file_name_from_git_log_line():
 
 def test_get_file_occurences_from_git_log():
     # When
-    file_occurences, file_names = get_file_occurences_from_git_log(
+    file_occurences, file_names = get_file_churn_from_git_log(
         "  34   28341287341234  filename        \n123                      123 filename \n 456 bla filename2 \n - - filename3 \n - - filename3 \n 123 123 filename3"
     )
 
@@ -84,7 +84,7 @@ def test_get_diagram_output():
     )
 
     # Then
-    assert subject == "yAxis\n|XO    \n|O     \n|\n|\n|\n|\n|\n------xAxis"
+    assert subject == "yAxis\n|.O    \n|O     \n|\n|\n|\n|\n|\n------xAxis"
 
 
 def test_keep_only_files_with_correct_ending():
