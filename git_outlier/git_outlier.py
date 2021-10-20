@@ -245,7 +245,7 @@ def prepare_churn_and_complexity_outliers_output(
         max_x_output,
         max_y_output,
         x_label_to_print,
-        y_label_to_print
+        y_label_to_print,
     )
     outlier_output = get_outliers_output(outliers)
     return outlier_output, plot_output
