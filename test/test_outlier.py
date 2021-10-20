@@ -84,7 +84,7 @@ def test_get_diagram_output():
     )
 
     # Then
-    assert subject == "yAxis\n|.O    \n|O     \n|\n|\n|\n|\n|\n------xAxis"
+    assert subject == "yAxis\n|.o    \n|o     \n|\n|\n|\n|\n|\n------xAxis"
 
 
 def test_keep_only_files_with_correct_ending():

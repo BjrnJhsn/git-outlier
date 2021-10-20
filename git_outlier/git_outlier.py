@@ -84,7 +84,7 @@ def get_diagram_output(
                     outliers_to_plot[y_val] is not None
                     and x_val in outliers_to_plot[y_val]
                 ):
-                    output = output + "O"
+                    output = output + "o"
                 elif (
                     points_to_plot[y_val] is not None and x_val in points_to_plot[y_val]
                 ):
