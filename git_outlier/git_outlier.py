@@ -12,7 +12,9 @@ from typing import Dict, List, Tuple, Union, Any, Optional, Sequence
 import lizard
 
 
-def get_git_log_in_current_directory(start_date: str, end_date: Optional[str] = None) -> str:
+def get_git_log_in_current_directory(
+    start_date: str, end_date: Optional[str] = None
+) -> str:
     pipe = subprocess.PIPE
 
     git_command = [
@@ -23,7 +25,7 @@ def get_git_log_in_current_directory(start_date: str, end_date: Optional[str] = 
         f"--since={start_date}",
         "--pretty=",
     ]
-    
+
     # Add --until parameter if end_date is provided
     if end_date:
         git_command.insert(-1, f"--until={end_date}")
@@ -348,7 +350,10 @@ def print_churn_outliers(
 
 
 def get_git_and_complexity_data(
-    endings: List[str], complexity_metric: str, start_date: str, end_date: Optional[str] = None
+    endings: List[str],
+    complexity_metric: str,
+    start_date: str,
+    end_date: Optional[str] = None,
 ) -> Tuple[Dict[str, int], Dict[str, int], List[str]]:
     all_of_it = get_git_log_in_current_directory(start_date, end_date)
     print("Retrieving git log...")
@@ -414,7 +419,7 @@ def parse_arguments(incoming: List[str]) -> Any:
   git outlier --metric=NLOC              # use lines of code instead of cyclomatic complexity
 
 For more information, see: https://github.com/BjrnJhsn/git-outlier""",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     supported_languages = get_supported_languages()
     supported_languages_list = [*supported_languages]
@@ -542,10 +547,10 @@ def parse_git_date(date_str: Optional[str], default_months_ago: int = 0) -> str:
         else:
             start = date.today() + relativedelta(months=-default_months_ago)
             return str(start)
-    
+
     # Handle relative dates like "6 months ago", "last week", etc.
     date_str = date_str.strip().lower()
-    
+
     # Common git-style relative dates
     if "months ago" in date_str or "month ago" in date_str:
         try:
@@ -579,7 +584,7 @@ def parse_git_date(date_str: Optional[str], default_months_ago: int = 0) -> str:
         return str(start)
     elif date_str in ["today"]:
         return str(date.today())
-    
+
     # Try to parse as absolute date using dateutil
     try:
         parsed_date = parse_date(date_str)
@@ -588,14 +593,16 @@ def parse_git_date(date_str: Optional[str], default_months_ago: int = 0) -> str:
         raise ValueError(f"Unable to parse date '{date_str}': {e}")
 
 
-def get_date_range(since: Optional[str], until: Optional[str]) -> Tuple[str, Optional[str]]:
+def get_date_range(
+    since: Optional[str], until: Optional[str]
+) -> Tuple[str, Optional[str]]:
     """Get the date range for git log analysis, handling both --since and --until"""
     # If no since specified, default to 12 months ago
     start_date = parse_git_date(since, default_months_ago=12)
-    
+
     # Parse until date if provided
     end_date = parse_git_date(until, default_months_ago=0) if until else None
-    
+
     return start_date, end_date
 
 
