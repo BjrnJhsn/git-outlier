@@ -80,7 +80,7 @@ def test_parse_git_date_named_relatives():
     result = parse_git_date("last month")
     expected = str(date.today() + relativedelta(months=-1))
     assert result == expected
-    
+
     result = parse_git_date("last year")
     expected = str(date.today() + relativedelta(years=-1))
     assert result == expected
