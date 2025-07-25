@@ -61,27 +61,46 @@ git-outlier --since="1 month ago" -l python javascript
 ### Command Options
 
 ```
-usage: git outlier [-h] [--languages LANGUAGES] [--metric METRIC] [--since SINCE] [--until UNTIL] [--top TOP] [-v] [path]
+usage: git_outlier.py [-h] [--languages <lang>] [--metric <type>]
+                      [--since <date>] [--until <date>] [--top <n>] [-v]
+                      [path]
 
 Find refactoring candidates by analyzing git history and code complexity.
 
 positional arguments:
-  path                  Path to git repository to analyze. Default: current directory
+  path                  Path to git repository to analyze. Default: current
+                        directory
 
 optional arguments:
   -h, --help            Show this help message and exit
-  --languages LANGUAGES, -l LANGUAGES
-                        Only analyze specified languages (can be repeated). Default: all supported languages. 
-                        Available: c, cpp, csharp, fortran, go, java, javascript, lua, objective-c, php, 
-                        python, ruby, rust, scala, swift, typescript
-  --metric METRIC, -m METRIC
-                        Complexity metric to use: CCN (cyclomatic complexity) or NLOC (lines of code). Default: CCN
-  --since SINCE         Show commits more recent than specific date. 
-                        Accepts: '2023-01-01', '6 months ago', 'last week'. Default: 12 months ago
-  --until UNTIL         Show commits older than specific date. 
-                        Accepts: '2023-12-31', '1 month ago', 'yesterday'. Default: today
-  --top TOP, -t TOP     Limit output to top N outliers per category. Default: 10
+  --languages <lang>, -l <lang>
+                        Only analyze specified languages (can be repeated).
+                        Default: all supported languages. Available: c, cpp,
+                        csharp, fortran, go, java, javascript, lua,
+                        objective-c, php, python, ruby, rust, scala, swift,
+                        typescript
+  --metric <type>, -m <type>
+                        Complexity metric to use: CCN (cyclomatic complexity)
+                        or NLOC (lines of code). Default: CCN
+  --since <date>        Show commits more recent than specific date. Accepts:
+                        '2023-01-01', '6 months ago', 'last week'. Default: 12
+                        months ago
+  --until <date>        Show commits older than specific date. Accepts:
+                        '2023-12-31', '1 month ago', 'yesterday'. Default:
+                        today
+  --top <n>, -t <n>     Limit output to top N outliers per category. Default:
+                        10
   -v, --verbose         Be more verbose (can be repeated for more detail)
+
+Examples:
+  git outlier                            # analyze last 12 months (if installed as git add-on)
+  git-outlier                            # same as above, direct invocation
+  git outlier --since="6 months ago"     # analyze last 6 months  
+  git outlier --since="2023-01-01" --until="2023-12-31"  # specific date range
+  git outlier -l python -l javascript    # analyze only Python and JavaScript
+  git outlier --metric=NLOC              # use lines of code instead of cyclomatic complexity
+
+For more information, see: https://github.com/BjrnJhsn/git-outlier
 ```
 
 ### Examples
