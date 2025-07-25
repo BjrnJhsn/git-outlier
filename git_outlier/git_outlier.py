@@ -77,7 +77,9 @@ def parse_churn_from_log(log: str) -> Tuple[Dict[str, int], List[str]]:
     return churn, file_names
 
 
-def sort_by_occurrence(dictionary_file_name_occurence: Dict[str, int]) -> List[Tuple[str, int]]:
+def sort_by_occurrence(
+    dictionary_file_name_occurence: Dict[str, int],
+) -> List[Tuple[str, int]]:
     return sorted(
         dictionary_file_name_occurence.items(),
         key=lambda kv: (kv[1], kv[0]),
@@ -86,12 +88,12 @@ def sort_by_occurrence(dictionary_file_name_occurence: Dict[str, int]) -> List[T
 
 
 def get_diagram_output(
-    points_to_plot: Dict[int, Optional[List[int]]], 
-    outliers_to_plot: Dict[int, Optional[List[int]]], 
-    max_xval: int, 
-    max_yval: int, 
-    x_axis: str, 
-    y_axis: str
+    points_to_plot: Dict[int, Optional[List[int]]],
+    outliers_to_plot: Dict[int, Optional[List[int]]],
+    max_xval: int,
+    max_yval: int,
+    x_axis: str,
+    y_axis: str,
 ) -> str:
     lines = [y_axis]
     for y_val in range(max_yval, -1, -1):
@@ -100,14 +102,9 @@ def get_diagram_output(
             for x_val in range(0, max_xval + 1, 1):
                 outlier_list = outliers_to_plot[y_val]
                 point_list = points_to_plot[y_val]
-                if (
-                    outlier_list is not None
-                    and x_val in outlier_list
-                ):
+                if outlier_list is not None and x_val in outlier_list:
                     line += "o"
-                elif (
-                    point_list is not None and x_val in point_list
-                ):
+                elif point_list is not None and x_val in point_list:
                     line += "."
                 else:
                     line += " "
@@ -117,12 +114,16 @@ def get_diagram_output(
 
 
 def convert_analysis_to_plot_data(
-    data: Dict[str, Dict[str, int]], 
-    x_label: str, 
-    y_label: str, 
-    max_x_output: int, 
-    max_y_output: int
-) -> Tuple[Dict[int, Optional[List[int]]], Dict[int, Optional[List[int]]], Dict[str, Dict[str, int]]]:
+    data: Dict[str, Dict[str, int]],
+    x_label: str,
+    y_label: str,
+    max_x_output: int,
+    max_y_output: int,
+) -> Tuple[
+    Dict[int, Optional[List[int]]],
+    Dict[int, Optional[List[int]]],
+    Dict[str, Dict[str, int]],
+]:
     y_max = 0
     x_max = 0
     for value in data.values():
@@ -162,7 +163,9 @@ def convert_analysis_to_plot_data(
     return points_to_plot, outliers_to_plot, outliers
 
 
-def filter_files_by_extension(file_list: Sequence[Union[str, Tuple[str, int]]], endings: List[str]) -> List[Union[str, Tuple[str, int]]]:
+def filter_files_by_extension(
+    file_list: Sequence[Union[str, Tuple[str, int]]], endings: List[str]
+) -> List[Union[str, Tuple[str, int]]]:
     output_list = []
     for item in file_list:
         if isinstance(item, tuple):
@@ -174,7 +177,9 @@ def filter_files_by_extension(file_list: Sequence[Union[str, Tuple[str, int]]], 
     return output_list
 
 
-def get_complexity_for_file_list(file_list: List[str], complexity_metric: str) -> Dict[str, int]:
+def get_complexity_for_file_list(
+    file_list: List[str], complexity_metric: str
+) -> Dict[str, int]:
     complexity = {}
     for file_name in file_list:
         if os.path.isfile(file_name):
@@ -195,9 +200,7 @@ def run_analyzer_on_file(file_name: str) -> Any:
 
 
 def combine_churn_and_complexity(
-    churn: Dict[str, int], 
-    complexity: Dict[str, int], 
-    filtered_file_names: List[str]
+    churn: Dict[str, int], complexity: Dict[str, int], filtered_file_names: List[str]
 ) -> Dict[str, Dict[str, int]]:
     result = {}
     for file_name in filtered_file_names:
@@ -239,11 +242,11 @@ def print_small_separator() -> None:
 
 
 def print_churn_and_complexity_outliers(
-    complexity: Dict[str, int], 
-    churn: Dict[str, int], 
-    filtered_file_names: List[str], 
-    complexity_metric: str, 
-    start_date: str
+    complexity: Dict[str, int],
+    churn: Dict[str, int],
+    filtered_file_names: List[str],
+    complexity_metric: str,
+    start_date: str,
 ) -> None:
     outlier_output, plot_output = prepare_outlier_analysis(
         complexity, complexity_metric, churn, filtered_file_names
@@ -252,10 +255,10 @@ def print_churn_and_complexity_outliers(
 
 
 def prepare_outlier_analysis(
-    complexity: Dict[str, int], 
-    complexity_metric: str, 
-    churn: Dict[str, int], 
-    filtered_file_names: List[str]
+    complexity: Dict[str, int],
+    complexity_metric: str,
+    churn: Dict[str, int],
+    filtered_file_names: List[str],
 ) -> Tuple[str, str]:
     analysis_result = combine_churn_and_complexity(
         churn, complexity, filtered_file_names
@@ -281,7 +284,9 @@ def prepare_outlier_analysis(
     return outlier_output, plot_output
 
 
-def print_plot_and_outliers(diagram_output: str, outlier_output: str, start_date: str) -> None:
+def print_plot_and_outliers(
+    diagram_output: str, outlier_output: str, start_date: str
+) -> None:
     print_headline("Churn vs complexity outliers")
     print_subsection(
         "Plot of churn vs complexity for all files since "
@@ -294,11 +299,11 @@ def print_plot_and_outliers(diagram_output: str, outlier_output: str, start_date
 
 
 def print_complexity_outliers(
-    complexity: Dict[str, int], 
-    complexity_metric: str, 
-    start_date: str, 
-    endings: List[str], 
-    top_complexity: int = 10
+    complexity: Dict[str, int],
+    complexity_metric: str,
+    start_date: str,
+    endings: List[str],
+    top_complexity: int = 10,
 ) -> None:
     print_headline("Complexity outliers")
     print_subsection(
@@ -319,10 +324,7 @@ def print_complexity_outliers(
 
 
 def print_churn_outliers(
-    start_date: str, 
-    churn: Dict[str, int], 
-    endings: List[str], 
-    top_churners: int = 10
+    start_date: str, churn: Dict[str, int], endings: List[str], top_churners: int = 10
 ) -> None:
     print_headline("Churn outliers")
     print_subsection(
@@ -341,9 +343,7 @@ def print_churn_outliers(
 
 
 def get_git_and_complexity_data(
-    endings: List[str], 
-    complexity_metric: str, 
-    start_date: str
+    endings: List[str], complexity_metric: str, start_date: str
 ) -> Tuple[Dict[str, int], Dict[str, int], List[str]]:
     all_of_it = get_git_log_in_current_directory(start_date)
     print("Retrieving git log...")
