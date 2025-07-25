@@ -205,6 +205,7 @@ def test_get_git_log_in_current_directory(mock_subprocess_popen):
     assert mock_subprocess_popen is subprocess.Popen
     process = Mock()
     process.communicate.return_value = "foo", "bar"
+    process.returncode = 0  # Mock successful git command
     mock_subprocess_popen.return_value = process
     subject = get_git_log_in_current_directory("12345")
 
