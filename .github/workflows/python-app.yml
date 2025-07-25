@@ -38,6 +38,9 @@ jobs:
     - name: Run git integration tests
       run: |
         pytest test/test_git_integration.py -v
+    - name: Run lizard integration tests
+      run: |
+        pytest test/test_lizard_integration.py -v
     - name: Check formatting with black
       run: |
         # stop the build if the black formatter wants to change a file
