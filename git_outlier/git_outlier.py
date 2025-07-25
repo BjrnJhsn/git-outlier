@@ -42,18 +42,18 @@ def get_git_log_in_current_directory(start_date):
     return stdoutput
 
 
-def get_file_name_from_git_log_line(line):
+def parse_filename_from_log(line):
     parts = line.split()
     if len(parts) >= 3:
         return parts[2]
     return ""
 
 
-def get_file_churn_from_git_log(log):
+def parse_churn_from_log(log):
     churn = {}
     file_names = []
     for line in log.splitlines():
-        file_name = get_file_name_from_git_log_line(line)
+        file_name = parse_filename_from_log(line)
         if file_name != "":
             if file_name in churn:
                 churn[file_name] += 1
@@ -63,7 +63,7 @@ def get_file_churn_from_git_log(log):
     return churn, file_names
 
 
-def ordered_list_with_files(dictionary_file_name_occurence):
+def sort_by_occurrence(dictionary_file_name_occurence):
     return sorted(
         dictionary_file_name_occurence.items(),
         key=lambda kv: (kv[1], kv[0]),
@@ -137,7 +137,7 @@ def convert_analysis_to_plot_data(data, x_label, y_label, max_x_output, max_y_ou
     return points_to_plot, outliers_to_plot, outliers
 
 
-def keep_only_files_with_correct_endings(file_list, endings):
+def filter_files_by_extension(file_list, endings):
     output_list = []
     for item in file_list:
         if type(item) is list or type(item) is tuple:
@@ -218,13 +218,13 @@ def print_small_separator():
 def print_churn_and_complexity_outliers(
     complexity, churn, filtered_file_names, complexity_metric, start_date
 ):
-    outlier_output, plot_output = prepare_churn_and_complexity_outliers_output(
+    outlier_output, plot_output = prepare_outlier_analysis(
         complexity, complexity_metric, churn, filtered_file_names
     )
     print_plot_and_outliers(plot_output, outlier_output, start_date)
 
 
-def prepare_churn_and_complexity_outliers_output(
+def prepare_outlier_analysis(
     complexity, complexity_metric, churn, filtered_file_names
 ):
     analysis_result = combine_churn_and_complexity(
@@ -276,8 +276,8 @@ def print_complexity_outliers(
         + start_date
         + ":"
     )
-    cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
-        ordered_list_with_files(complexity), endings
+    cleaned_ordered_list_with_files = filter_files_by_extension(
+        sort_by_occurrence(complexity), endings
     )
     print("Complexity Filenames")
     for items in cleaned_ordered_list_with_files[0:top_complexity]:
@@ -293,8 +293,8 @@ def print_churn_outliers(start_date, churn, endings, top_churners=10):
         + start_date
         + ":"
     )
-    cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
-        ordered_list_with_files(churn), endings
+    cleaned_ordered_list_with_files = filter_files_by_extension(
+        sort_by_occurrence(churn), endings
     )
     print("Changes Filenames")
     for items in cleaned_ordered_list_with_files[0:top_churners]:
@@ -304,8 +304,8 @@ def print_churn_outliers(start_date, churn, endings, top_churners=10):
 def get_git_and_complexity_data(endings, complexity_metric, start_date):
     all_of_it = get_git_log_in_current_directory(start_date)
     print("Retrieving git log...")
-    churn, file_names = get_file_churn_from_git_log(all_of_it)
-    filtered_file_names = keep_only_files_with_correct_endings(file_names, endings)
+    churn, file_names = parse_churn_from_log(all_of_it)
+    filtered_file_names = filter_files_by_extension(file_names, endings)
     print("Computing complexity...")
     complexity = get_complexity_for_file_list(filtered_file_names, complexity_metric)
     print(str(len(filtered_file_names)) + " files analyzed.")
@@ -442,7 +442,7 @@ def parse_arguments(incoming):
     return args
 
 
-def switch_to_correct_path_and_save_current(path_to_switch):
+def change_directory(path_to_switch):
     startup_path = os.getcwd()
     try:
         expanded_path = os.path.expanduser(path_to_switch)
@@ -456,7 +456,7 @@ def switch_to_correct_path_and_save_current(path_to_switch):
     return startup_path
 
 
-def switch_back_original_directory(path):
+def restore_directory(path):
     try:
         os.chdir(path)
     except OSError as err:
@@ -483,7 +483,7 @@ def main():
         level=options.level, format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    startup_path = switch_to_correct_path_and_save_current(options.path)
+    startup_path = change_directory(options.path)
 
     endings = get_file_endings_for_languages(options.languages)
     start_date = get_start_date(options.span)
@@ -493,7 +493,7 @@ def main():
         filtered_file_names,
     ) = get_git_and_complexity_data(endings, options.metric, start_date)
 
-    switch_back_original_directory(startup_path)
+    restore_directory(startup_path)
 
     print_churn_outliers(start_date, churn, endings, options.top)
 

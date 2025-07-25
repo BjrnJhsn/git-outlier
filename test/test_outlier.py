@@ -5,13 +5,13 @@ from unittest.mock import Mock
 
 def test_get_file_name_from_git_log_line():
     # When
-    subject = get_file_name_from_git_log_line("  34   28341287341234  filename")
+    subject = parse_filename_from_log("  34   28341287341234  filename")
 
     # Then
     assert subject == "filename"
 
     # When
-    subject = get_file_name_from_git_log_line("1 2")
+    subject = parse_filename_from_log("1 2")
 
     # Then
     assert subject == ""
@@ -19,7 +19,7 @@ def test_get_file_name_from_git_log_line():
 
 def test_get_file_occurences_from_git_log():
     # When
-    file_occurences, file_names = get_file_churn_from_git_log(
+    file_occurences, file_names = parse_churn_from_log(
         "  34   28341287341234  filename        \n123                      123 filename \n 456 bla filename2 \n - - filename3 \n - - filename3 \n 123 123 filename3"
     )
 
@@ -31,7 +31,7 @@ def test_get_file_occurences_from_git_log():
 
 def test_ordered_list_with_files():
     # When
-    subject = ordered_list_with_files({"filename": 2, "filename2": 1, "filename3": 3})
+    subject = sort_by_occurrence({"filename": 2, "filename2": 1, "filename3": 3})
 
     # Then
     assert subject[0][0] == "filename3"
@@ -88,7 +88,7 @@ def test_get_diagram_output():
 
 
 def test_keep_only_files_with_correct_ending():
-    subject = keep_only_files_with_correct_endings(
+    subject = filter_files_by_extension(
         ["test.py", "yada.py", "keepMe.txt", "DontKeepMe.cpp"], [".txt", ".py"]
     )
     assert subject[0] == "test.py"
