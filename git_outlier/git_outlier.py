@@ -7,11 +7,12 @@ import argparse
 import sys
 from datetime import date
 from dateutil.relativedelta import relativedelta
+from dateutil.parser import parse as parse_date
 from typing import Dict, List, Tuple, Union, Any, Optional, Sequence
 import lizard
 
 
-def get_git_log_in_current_directory(start_date: str) -> str:
+def get_git_log_in_current_directory(start_date: str, end_date: Optional[str] = None) -> str:
     pipe = subprocess.PIPE
 
     git_command = [
@@ -22,6 +23,10 @@ def get_git_log_in_current_directory(start_date: str) -> str:
         f"--since={start_date}",
         "--pretty=",
     ]
+    
+    # Add --until parameter if end_date is provided
+    if end_date:
+        git_command.insert(-1, f"--until={end_date}")
     logging.info(f"Git command: {git_command}")
     try:
         process = subprocess.Popen(
@@ -343,9 +348,9 @@ def print_churn_outliers(
 
 
 def get_git_and_complexity_data(
-    endings: List[str], complexity_metric: str, start_date: str
+    endings: List[str], complexity_metric: str, start_date: str, end_date: Optional[str] = None
 ) -> Tuple[Dict[str, int], Dict[str, int], List[str]]:
-    all_of_it = get_git_log_in_current_directory(start_date)
+    all_of_it = get_git_log_in_current_directory(start_date, end_date)
     print("Retrieving git log...")
     churn, file_names = parse_churn_from_log(all_of_it)
     filtered_file_names = filter_files_by_extension(file_names, endings)
@@ -426,11 +431,18 @@ def parse_arguments(incoming: List[str]) -> Any:
         default="CCN",
     )
     parser.add_argument(
-        "--span",
-        "-s",
-        help="The number (integer) of months the analysis will look at. Default is 12 months.",
-        default=12,
-        type=int,
+        "--since",
+        help="Show commits more recent than a specific date. Accepts various formats like "
+        "'2023-01-01', '6 months ago', 'last week'. Default is 12 months ago.",
+        default=None,
+        type=str,
+    )
+    parser.add_argument(
+        "--until",
+        help="Show commits older than a specific date. Accepts various formats like "
+        "'2023-12-31', '1 month ago', 'yesterday'. Default is today.",
+        default=None,
+        type=str,
     )
     parser.add_argument(
         "--top",
@@ -457,8 +469,14 @@ def parse_arguments(incoming: List[str]) -> Any:
 
     args = parser.parse_args(incoming)
 
-    if args.span and (args.span < 1 or args.span > 100):
-        parser.error("Span must be in the range (1,100).")
+    # Validate date parameters
+    try:
+        if args.since:
+            parse_git_date(args.since)
+        if args.until:
+            parse_git_date(args.until)
+    except ValueError as e:
+        parser.error(str(e))
 
     ok_metrics = ["NLOC", "CCN"]
     if args.metric not in ok_metrics:
@@ -510,13 +528,70 @@ def restore_directory(path: str) -> None:
         sys.exit(1)
 
 
-def get_start_date(span_in_months: Union[int, List[int]]) -> str:
-    today = date.today()
-    if isinstance(span_in_months, list):
-        span_in_months = span_in_months[0]
-    assert span_in_months >= 0
-    start = today + relativedelta(months=-span_in_months)
-    return str(start)
+def parse_git_date(date_str: Optional[str], default_months_ago: int = 0) -> str:
+    """Parse git-style date string into ISO format for git log --since/--until"""
+    if date_str is None:
+        # Default behavior - go back specified months or use today
+        if default_months_ago == 0:
+            return str(date.today())
+        else:
+            start = date.today() + relativedelta(months=-default_months_ago)
+            return str(start)
+    
+    # Handle relative dates like "6 months ago", "last week", etc.
+    date_str = date_str.strip().lower()
+    
+    # Common git-style relative dates
+    if "months ago" in date_str or "month ago" in date_str:
+        try:
+            months = int(date_str.split()[0])
+            start = date.today() + relativedelta(months=-months)
+            return str(start)
+        except (ValueError, IndexError):
+            pass
+    elif "weeks ago" in date_str or "week ago" in date_str:
+        try:
+            weeks = int(date_str.split()[0])
+            start = date.today() + relativedelta(weeks=-weeks)
+            return str(start)
+        except (ValueError, IndexError):
+            pass
+    elif "days ago" in date_str or "day ago" in date_str:
+        try:
+            days = int(date_str.split()[0])
+            start = date.today() + relativedelta(days=-days)
+            return str(start)
+        except (ValueError, IndexError):
+            pass
+    elif date_str in ["yesterday"]:
+        start = date.today() + relativedelta(days=-1)
+        return str(start)
+    elif date_str in ["last week"]:
+        start = date.today() + relativedelta(weeks=-1)
+        return str(start)
+    elif date_str in ["last month"]:
+        start = date.today() + relativedelta(months=-1)
+        return str(start)
+    elif date_str in ["today"]:
+        return str(date.today())
+    
+    # Try to parse as absolute date using dateutil
+    try:
+        parsed_date = parse_date(date_str)
+        return str(parsed_date.date())
+    except Exception as e:
+        raise ValueError(f"Unable to parse date '{date_str}': {e}")
+
+
+def get_date_range(since: Optional[str], until: Optional[str]) -> Tuple[str, Optional[str]]:
+    """Get the date range for git log analysis, handling both --since and --until"""
+    # If no since specified, default to 12 months ago
+    start_date = parse_git_date(since, default_months_ago=12)
+    
+    # Parse until date if provided
+    end_date = parse_git_date(until, default_months_ago=0) if until else None
+    
+    return start_date, end_date
 
 
 def main() -> None:
@@ -529,12 +604,12 @@ def main() -> None:
     startup_path = change_directory(options.path)
 
     endings = get_file_endings_for_languages(options.languages)
-    start_date = get_start_date(options.span)
+    start_date, end_date = get_date_range(options.since, options.until)
     (
         computed_complexity,
         churn,
         filtered_file_names,
-    ) = get_git_and_complexity_data(endings, options.metric, start_date)
+    ) = get_git_and_complexity_data(endings, options.metric, start_date, end_date)
 
     restore_directory(startup_path)
 
