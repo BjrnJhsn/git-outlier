@@ -404,11 +404,17 @@ def get_file_endings_for_languages(languages: Union[str, List[str]]) -> List[str
 
 def parse_arguments(incoming: List[str]) -> Any:
     parser = argparse.ArgumentParser(
-        description="""Analyze a source directory that uses git as version handling system.
-        The source files are analyzed for different type of outliers and these outliers can 
-        be good candidates for refactoring to increase maintainability. The source files 
-        are ranked in falling order after churn, complexity, and combined churn 
-        and complexity."""
+        description="Find refactoring candidates by analyzing git history and code complexity.",
+        epilog="""Examples:
+  git outlier                            # analyze last 12 months (if installed as git add-on)
+  git-outlier                            # same as above, direct invocation
+  git outlier --since="6 months ago"     # analyze last 6 months  
+  git outlier --since="2023-01-01" --until="2023-12-31"  # specific date range
+  git outlier -l python -l javascript    # analyze only Python and JavaScript
+  git outlier --metric=NLOC              # use lines of code instead of cyclomatic complexity
+
+For more information, see: https://github.com/BjrnJhsn/git-outlier""",
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     supported_languages = get_supported_languages()
     supported_languages_list = [*supported_languages]
@@ -416,39 +422,39 @@ def parse_arguments(incoming: List[str]) -> Any:
         "--languages",
         "-l",
         action="append",
-        help="List the programming languages you want to analyze. If left empty, it'll"
-        " search for all recognized languages. Example: 'outlier -l cpp -l python' searches for"
-        " C++ and Python code. The available languages are: "
-        + ", ".join(supported_languages),
+        metavar="<lang>",
+        help="Only analyze specified languages (can be repeated). "
+        f"Default: all supported languages. Available: {', '.join(sorted(supported_languages))}",
         type=str,
     )
     parser.add_argument(
         "--metric",
         "-m",
-        help="Choose the complexity metric you would like to base the results on. Either cyclomatic"
-        " complexity 'CCN' or lines of code without comments 'NLOC'. If not specified,"
-        " the default is 'CCN'.",
+        metavar="<type>",
+        help="Complexity metric to use: CCN (cyclomatic complexity) or NLOC (lines of code). Default: CCN",
         default="CCN",
     )
     parser.add_argument(
         "--since",
-        help="Show commits more recent than a specific date. Accepts various formats like "
-        "'2023-01-01', '6 months ago', 'last week'. Default is 12 months ago.",
+        metavar="<date>",
+        help="Show commits more recent than specific date. "
+        "Accepts: '2023-01-01', '6 months ago', 'last week'. Default: 12 months ago",
         default=None,
         type=str,
     )
     parser.add_argument(
         "--until",
-        help="Show commits older than a specific date. Accepts various formats like "
-        "'2023-12-31', '1 month ago', 'yesterday'. Default is today.",
+        metavar="<date>",
+        help="Show commits older than specific date. "
+        "Accepts: '2023-12-31', '1 month ago', 'yesterday'. Default: today",
         default=None,
         type=str,
     )
     parser.add_argument(
         "--top",
         "-t",
-        help="The number (integer) of outliers to show. Note that for the combined churn and complexity outliers,"
-        " there is no maximum. Default is 10.",
+        metavar="<n>",
+        help="Limit output to top N outliers per category. Default: 10",
         default=10,
         type=int,
     )
@@ -456,15 +462,14 @@ def parse_arguments(incoming: List[str]) -> Any:
         "path",
         nargs="?",
         default=".",
-        help="The path to the source directory to be analyzed. Will default to current "
-        "directory if not present.",
+        help="Path to git repository to analyze. Default: current directory",
     )
     parser.add_argument(
         "-v",
         "--verbose",
         action="count",
         default=0,
-        help="Show analysis details and debug info.",
+        help="Be more verbose (can be repeated for more detail)",
     )
 
     args = parser.parse_args(incoming)
