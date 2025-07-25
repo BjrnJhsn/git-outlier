@@ -30,6 +30,19 @@ def get_git_log_in_current_directory(start_date):
             universal_newlines=True,
         )
         stdoutput, stderroutput = process.communicate()
+
+        # Check if git command failed (e.g., not in a git repository)
+        if process.returncode != 0:
+            if "not a git repository" in stderroutput.lower():
+                logging.error("fatal: not a git repository")
+                sys.exit(128)  # Git's standard exit code for "not a git repository"
+            elif "does not have any commits yet" in stderroutput.lower():
+                # Empty repository with no commits - return empty string instead of exiting
+                logging.info("Repository has no commits yet")
+                return ""
+            else:
+                logging.error(f"Git command failed: {stderroutput}")
+                sys.exit(1)
     except OSError as err:
         logging.error(f"OS error: {err}")
         sys.exit(1)
