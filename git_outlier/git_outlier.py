@@ -18,10 +18,10 @@ def get_git_log_in_current_directory(start_date):
         "log",
         "--numstat",
         "--no-merges",
-        "--since=" + start_date,
+        f"--since={start_date}",
         "--pretty=",
     ]
-    logging.info("Git command: " + str(git_command))
+    logging.info(f"Git command: {git_command}")
     try:
         process = subprocess.Popen(
             git_command,
@@ -31,29 +31,29 @@ def get_git_log_in_current_directory(start_date):
         )
         stdoutput, stderroutput = process.communicate()
     except OSError as err:
-        logging.error("OS error: {0}".format(err))
+        logging.error(f"OS error: {err}")
         sys.exit(1)
-    except:
-        logging.error("Unexpected error: ", sys.exc_info()[0])
-        logging.error("Trying to execute the following subprocess: " + str(git_command))
+    except Exception as err:
+        logging.error("Unexpected error: %s", err)
+        logging.error("Trying to execute the following subprocess: %s", git_command)
         logging.error("Git problem, exiting...")
         sys.exit(1)
 
     return stdoutput
 
 
-def get_file_name_from_git_log_line(line):
+def parse_filename_from_log(line):
     parts = line.split()
     if len(parts) >= 3:
         return parts[2]
     return ""
 
 
-def get_file_churn_from_git_log(log):
+def parse_churn_from_log(log):
     churn = {}
     file_names = []
     for line in log.splitlines():
-        file_name = get_file_name_from_git_log_line(line)
+        file_name = parse_filename_from_log(line)
         if file_name != "":
             if file_name in churn:
                 churn[file_name] += 1
@@ -63,7 +63,7 @@ def get_file_churn_from_git_log(log):
     return churn, file_names
 
 
-def ordered_list_with_files(dictionary_file_name_occurence):
+def sort_by_occurrence(dictionary_file_name_occurence):
     return sorted(
         dictionary_file_name_occurence.items(),
         key=lambda kv: (kv[1], kv[0]),
@@ -74,29 +74,25 @@ def ordered_list_with_files(dictionary_file_name_occurence):
 def get_diagram_output(
     points_to_plot, outliers_to_plot, max_xval, max_yval, x_axis, y_axis
 ):
-    output = ""
-    output = output + y_axis + "\n"
+    lines = [y_axis]
     for y_val in range(max_yval, -1, -1):
-        output = output + "|"
+        line = "|"
         if points_to_plot[y_val] or outliers_to_plot[y_val] is not None:
             for x_val in range(0, max_xval + 1, 1):
                 if (
                     outliers_to_plot[y_val] is not None
                     and x_val in outliers_to_plot[y_val]
                 ):
-                    output = output + "o"
+                    line += "o"
                 elif (
                     points_to_plot[y_val] is not None and x_val in points_to_plot[y_val]
                 ):
-                    output = output + "."
-
+                    line += "."
                 else:
-                    output = output + " "
-        output = output + "\n"
-    for x_val in range(0, max_xval + 1, 1):
-        output = output + "-"
-    output = output + x_axis
-    return output
+                    line += " "
+        lines.append(line)
+    lines.append("-" * (max_xval + 1) + x_axis)
+    return "\n".join(lines)
 
 
 def convert_analysis_to_plot_data(data, x_label, y_label, max_x_output, max_y_output):
@@ -137,10 +133,10 @@ def convert_analysis_to_plot_data(data, x_label, y_label, max_x_output, max_y_ou
     return points_to_plot, outliers_to_plot, outliers
 
 
-def keep_only_files_with_correct_endings(file_list, endings):
+def filter_files_by_extension(file_list, endings):
     output_list = []
     for item in file_list:
-        if type(item) is file_list or type(item) is tuple:
+        if type(item) is list or type(item) is tuple:
             filename, file_extension = os.path.splitext(item[0])
         else:
             filename, file_extension = os.path.splitext(item)
@@ -153,7 +149,7 @@ def get_complexity_for_file_list(file_list, complexity_metric):
     complexity = {}
     for file_name in file_list:
         if os.path.isfile(file_name):
-            logging.info("Analyzing " + str(file_name))
+            logging.info(f"Analyzing {file_name}")
             result = run_analyzer_on_file(file_name)
             if complexity_metric == "CCN":
                 complexity[file_name] = result.CCN
@@ -184,49 +180,41 @@ def get_outliers_output(outliers):
     if len(outliers) == 0:
         return "No outliers were found.\n"
     else:
-        output = ""
-        for key in outliers:
-            output = output + key + "\n"
-        return output
+        return "\n".join(outliers) + "\n"
 
 
 def big_separator():
-    return (
-        "=================================================="
-        + "================================================="
-    )
+    return "=" * 99
 
 
 def print_headline(headline):
-    print("\n" + big_separator())
-    print("=  " + headline)
-    print(big_separator() + "\n")
+    print(f"\n{big_separator()}")
+    print(f"=  {headline}")
+    print(f"{big_separator()}\n")
 
 
 def print_subsection(subsection):
-    print("\n-= " + subsection + " =-")
+    print(f"\n-= {subsection} =-")
 
 
 def print_big_separator():
-    print("\n" + big_separator())
+    print(f"\n{big_separator()}")
 
 
 def print_small_separator():
-    print("\n============================================================n")
+    print("\n============================================================\n")
 
 
 def print_churn_and_complexity_outliers(
     complexity, churn, filtered_file_names, complexity_metric, start_date
 ):
-    outlier_output, plot_output = prepare_churn_and_complexity_outliers_output(
+    outlier_output, plot_output = prepare_outlier_analysis(
         complexity, complexity_metric, churn, filtered_file_names
     )
     print_plot_and_outliers(plot_output, outlier_output, start_date)
 
 
-def prepare_churn_and_complexity_outliers_output(
-    complexity, complexity_metric, churn, filtered_file_names
-):
+def prepare_outlier_analysis(complexity, complexity_metric, churn, filtered_file_names):
     analysis_result = combine_churn_and_complexity(
         churn, complexity, filtered_file_names
     )
@@ -237,7 +225,7 @@ def prepare_churn_and_complexity_outliers_output(
     points_to_plot, outliers_to_plot, outliers = convert_analysis_to_plot_data(
         analysis_result, x_label, y_label, max_x_output, max_y_output
     )
-    x_label_to_print = x_label + "(" + str(complexity_metric) + ")"
+    x_label_to_print = f"{x_label}({complexity_metric})"
     y_label_to_print = y_label
     plot_output = get_diagram_output(
         points_to_plot,
@@ -276,8 +264,8 @@ def print_complexity_outliers(
         + start_date
         + ":"
     )
-    cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
-        ordered_list_with_files(complexity), endings
+    cleaned_ordered_list_with_files = filter_files_by_extension(
+        sort_by_occurrence(complexity), endings
     )
     print("Complexity Filenames")
     for items in cleaned_ordered_list_with_files[0:top_complexity]:
@@ -293,8 +281,8 @@ def print_churn_outliers(start_date, churn, endings, top_churners=10):
         + start_date
         + ":"
     )
-    cleaned_ordered_list_with_files = keep_only_files_with_correct_endings(
-        ordered_list_with_files(churn), endings
+    cleaned_ordered_list_with_files = filter_files_by_extension(
+        sort_by_occurrence(churn), endings
     )
     print("Changes Filenames")
     for items in cleaned_ordered_list_with_files[0:top_churners]:
@@ -304,11 +292,11 @@ def print_churn_outliers(start_date, churn, endings, top_churners=10):
 def get_git_and_complexity_data(endings, complexity_metric, start_date):
     all_of_it = get_git_log_in_current_directory(start_date)
     print("Retrieving git log...")
-    churn, file_names = get_file_churn_from_git_log(all_of_it)
-    filtered_file_names = keep_only_files_with_correct_endings(file_names, endings)
+    churn, file_names = parse_churn_from_log(all_of_it)
+    filtered_file_names = filter_files_by_extension(file_names, endings)
     print("Computing complexity...")
     complexity = get_complexity_for_file_list(filtered_file_names, complexity_metric)
-    print(str(len(filtered_file_names)) + " files analyzed.")
+    print(f"{len(filtered_file_names)} files analyzed.")
     return complexity, churn, filtered_file_names
 
 
@@ -414,7 +402,7 @@ def parse_arguments(incoming):
 
     args = parser.parse_args(incoming)
 
-    if args.span and args.span < 1 or args.span > 100:
+    if args.span and (args.span < 1 or args.span > 100):
         parser.error("Span must be in the range (1,100).")
 
     ok_metrics = ["NLOC", "CCN"]
@@ -428,12 +416,11 @@ def parse_arguments(incoming):
     supported_languages = get_supported_languages()
     supported_languages_list = [*supported_languages]
 
-    # Need to fix :-)
     if args.languages is None:
         args.languages = supported_languages_list
 
     if not all(elem in supported_languages_list for elem in args.languages):
-        parser.error("Unsupported languages: " + str(args.languages))
+        parser.error(f"Unsupported languages: {args.languages}")
 
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
     args.level = levels[
@@ -443,28 +430,28 @@ def parse_arguments(incoming):
     return args
 
 
-def switch_to_correct_path_and_save_current(path_to_switch):
+def change_directory(path_to_switch):
     startup_path = os.getcwd()
     try:
         expanded_path = os.path.expanduser(path_to_switch)
         os.chdir(expanded_path)
     except OSError as err:
-        logging.error("OS error: {0}".format(err))
+        logging.error(f"OS error: {err}")
         sys.exit(1)
-    except:
-        logging.error("Unexpected error:", sys.exc_info()[0])
+    except Exception as err:
+        logging.error("Unexpected error: %s", err)
         sys.exit(1)
     return startup_path
 
 
-def switch_back_original_directory(path):
+def restore_directory(path):
     try:
         os.chdir(path)
     except OSError as err:
-        logging.error("OS error: {0}".format(err))
+        logging.error(f"OS error: {err}")
         sys.exit(1)
-    except:
-        logging.error("Unexpected error:", sys.exc_info()[0])
+    except Exception as err:
+        logging.error("Unexpected error: %s", err)
         sys.exit(1)
 
 
@@ -484,7 +471,7 @@ def main():
         level=options.level, format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    startup_path = switch_to_correct_path_and_save_current(options.path)
+    startup_path = change_directory(options.path)
 
     endings = get_file_endings_for_languages(options.languages)
     start_date = get_start_date(options.span)
@@ -494,7 +481,7 @@ def main():
         filtered_file_names,
     ) = get_git_and_complexity_data(endings, options.metric, start_date)
 
-    switch_back_original_directory(startup_path)
+    restore_directory(startup_path)
 
     print_churn_outliers(start_date, churn, endings, options.top)
 
