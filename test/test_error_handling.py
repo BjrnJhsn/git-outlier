@@ -15,44 +15,44 @@ from git_outlier.git_outlier import (
 class TestGitCommandErrors:
     """Test git command error handling"""
 
-    @patch('subprocess.Popen')
+    @patch("subprocess.Popen")
     def test_git_command_failure(self, mock_popen):
         """Test git command failure handling"""
         process = Mock()
         process.communicate.return_value = ("", "git command failed")
         process.returncode = 1  # Non-zero return code
         mock_popen.return_value = process
-        
+
         with pytest.raises(SystemExit) as exc_info:
             get_git_log_in_current_directory("2023-01-01")
         assert exc_info.value.code == 1
 
-    @patch('subprocess.Popen')
+    @patch("subprocess.Popen")
     def test_git_os_error(self, mock_popen):
         """Test OS error when executing git command"""
         mock_popen.side_effect = OSError("Command not found")
-        
+
         with pytest.raises(SystemExit) as exc_info:
             get_git_log_in_current_directory("2023-01-01")
         assert exc_info.value.code == 1
 
-    @patch('subprocess.Popen')
+    @patch("subprocess.Popen")
     def test_git_unexpected_error(self, mock_popen):
         """Test unexpected error handling"""
         mock_popen.side_effect = Exception("Unexpected error")
-        
+
         with pytest.raises(SystemExit) as exc_info:
             get_git_log_in_current_directory("2023-01-01")
         assert exc_info.value.code == 1
 
     def test_empty_repository_scenario(self):
         """Test scenario with empty git repository"""
-        with patch('subprocess.Popen') as mock_popen:
+        with patch("subprocess.Popen") as mock_popen:
             process = Mock()
             process.communicate.return_value = ("", "does not have any commits yet")
             process.returncode = 1
             mock_popen.return_value = process
-            
+
             result = get_git_log_in_current_directory("2023-01-01")
             assert result == ""
 
@@ -68,7 +68,7 @@ class TestDirectoryErrors:
 
     def test_change_directory_unexpected_error(self):
         """Test change_directory with unexpected error"""
-        with patch('os.chdir', side_effect=Exception("Unexpected error")):
+        with patch("os.chdir", side_effect=Exception("Unexpected error")):
             with pytest.raises(SystemExit) as exc_info:
                 change_directory(".")
             assert exc_info.value.code == 1
@@ -81,7 +81,7 @@ class TestDirectoryErrors:
 
     def test_restore_directory_unexpected_error(self):
         """Test restore_directory with unexpected error"""
-        with patch('os.chdir', side_effect=Exception("Unexpected error")):
+        with patch("os.chdir", side_effect=Exception("Unexpected error")):
             with pytest.raises(SystemExit) as exc_info:
                 restore_directory(".")
             assert exc_info.value.code == 1
@@ -115,7 +115,7 @@ class TestArgumentValidationErrors:
         # Test with whitespace
         args = parse_arguments(["--since", "  6 months ago  ", "."])
         assert args.since == "  6 months ago  "
-        
+
         # Test with valid absolute date
         args = parse_arguments(["--since", "2023-01-01", "."])
         assert args.since == "2023-01-01"

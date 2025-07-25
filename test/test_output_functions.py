@@ -48,7 +48,10 @@ class TestBasicOutputFunctions:
         """Test print_small_separator output"""
         print_small_separator()
         captured = capsys.readouterr()
-        assert "============================================================" in captured.out
+        assert (
+            "============================================================"
+            in captured.out
+        )
 
 
 class TestOutlierOutputFunctions:
@@ -84,18 +87,18 @@ class TestOutlierOutputFunctions:
         assert "Complexity outliers" in captured.out
         assert "file1.py" in captured.out
 
-    @patch('git_outlier.git_outlier.prepare_outlier_analysis')
-    @patch('git_outlier.git_outlier.print_plot_and_outliers')
+    @patch("git_outlier.git_outlier.prepare_outlier_analysis")
+    @patch("git_outlier.git_outlier.print_plot_and_outliers")
     def test_print_churn_and_complexity_outliers(self, mock_print, mock_prepare):
         """Test print_churn_and_complexity_outliers"""
         mock_prepare.return_value = ("outlier_output", "plot_output")
         complexity = {"file1.py": 10}
         churn = {"file1.py": 5}
         filtered_files = ["file1.py"]
-        
+
         print_churn_and_complexity_outliers(
             complexity, churn, filtered_files, "CCN", "2023-01-01"
         )
-        
+
         mock_prepare.assert_called_once()
         mock_print.assert_called_once()

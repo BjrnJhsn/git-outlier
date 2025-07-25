@@ -15,13 +15,13 @@ class TestDiagramGeneration:
         data = {
             "high_churn_high_complexity.py": {"Churn": 20, "Complexity": 15},
             "low_churn_low_complexity.py": {"Churn": 2, "Complexity": 1},
-            "medium_file.py": {"Churn": 10, "Complexity": 8}
+            "medium_file.py": {"Churn": 10, "Complexity": 8},
         }
-        
+
         points_to_plot, outliers_to_plot, outliers = convert_analysis_to_plot_data(
             data, "Churn", "Complexity", 20, 10
         )
-        
+
         # Should have outliers in high churn/complexity zone
         assert len(outliers) > 0
         assert isinstance(points_to_plot, dict)
@@ -33,13 +33,13 @@ class TestDiagramGeneration:
             "low_complexity.py": {"Churn": 1, "Complexity": 1},
             "medium_file.py": {"Churn": 5, "Complexity": 3},
             "high_churn_low_complexity.py": {"Churn": 10, "Complexity": 1},
-            "high_complexity_low_churn.py": {"Churn": 1, "Complexity": 10}
+            "high_complexity_low_churn.py": {"Churn": 1, "Complexity": 10},
         }
-        
+
         points_to_plot, outliers_to_plot, outliers = convert_analysis_to_plot_data(
             data, "Churn", "Complexity", 20, 10
         )
-        
+
         # Should have no outliers (none in upper-right quadrant)
         assert len(outliers) == 0
         assert isinstance(points_to_plot, dict)
@@ -50,13 +50,13 @@ class TestDiagramGeneration:
         data = {
             "high1.py": {"Churn": 18, "Complexity": 15},
             "high2.py": {"Churn": 20, "Complexity": 18},
-            "high3.py": {"Churn": 19, "Complexity": 16}
+            "high3.py": {"Churn": 19, "Complexity": 16},
         }
-        
+
         points_to_plot, outliers_to_plot, outliers = convert_analysis_to_plot_data(
             data, "Churn", "Complexity", 20, 18
         )
-        
+
         # All should be outliers
         assert len(outliers) == 3
         assert isinstance(points_to_plot, dict)
