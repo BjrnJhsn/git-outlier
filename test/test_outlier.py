@@ -127,17 +127,20 @@ def test_argument_parser():
     supported_languages = get_supported_languages()
     supported_languages_list = [*supported_languages]
     subject = parse_arguments(".")
-    assert subject.span == 12
+    assert subject.since is None  # Default since replaced span
+    assert subject.until is None  # Default until
     assert subject.languages == supported_languages_list
     assert subject.path == "."
 
     subject = parse_arguments("")
-    assert subject.span == 12
+    assert subject.since is None
+    assert subject.until is None
     assert subject.languages == supported_languages_list
     assert subject.path == "."
 
     subject = parse_arguments([".", "-l", "cpp", "-l", "python"])
-    assert subject.span == 12
+    assert subject.since is None
+    assert subject.until is None
     assert subject.languages == ["cpp", "python"]
     assert subject.path == "."
 
