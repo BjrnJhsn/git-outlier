@@ -214,9 +214,7 @@ def print_churn_and_complexity_outliers(
     print_plot_and_outliers(plot_output, outlier_output, start_date)
 
 
-def prepare_outlier_analysis(
-    complexity, complexity_metric, churn, filtered_file_names
-):
+def prepare_outlier_analysis(complexity, complexity_metric, churn, filtered_file_names):
     analysis_result = combine_churn_and_complexity(
         churn, complexity, filtered_file_names
     )
