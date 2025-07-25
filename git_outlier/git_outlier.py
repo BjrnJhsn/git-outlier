@@ -30,7 +30,7 @@ def get_git_log_in_current_directory(start_date):
             universal_newlines=True,
         )
         stdoutput, stderroutput = process.communicate()
-        
+
         # Check if git command failed (e.g., not in a git repository)
         if process.returncode != 0:
             if "not a git repository" in stderroutput.lower():
