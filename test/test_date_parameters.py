@@ -27,6 +27,17 @@ def test_parse_git_date_none_with_default():
     assert result == expected
 
 
+def test_parse_git_date_relative_years():
+    """Test parsing relative date strings with years"""
+    result = parse_git_date("1 year ago")
+    expected = str(date.today() + relativedelta(years=-1))
+    assert result == expected
+
+    result = parse_git_date("2 years ago")
+    expected = str(date.today() + relativedelta(years=-2))
+    assert result == expected
+
+
 def test_parse_git_date_relative_months():
     """Test parsing relative date strings with months"""
     result = parse_git_date("6 months ago")
@@ -70,6 +81,10 @@ def test_parse_git_date_named_relatives():
     expected = str(date.today() + relativedelta(months=-1))
     assert result == expected
 
+    result = parse_git_date("last year")
+    expected = str(date.today() + relativedelta(years=-1))
+    assert result == expected
+
 
 def test_parse_git_date_absolute_dates():
     """Test parsing absolute date strings"""
@@ -91,6 +106,10 @@ def test_parse_git_date_case_insensitive():
     """Test that date parsing is case insensitive"""
     result1 = parse_git_date("6 MONTHS AGO")
     result2 = parse_git_date("6 months ago")
+    assert result1 == result2
+
+    result1 = parse_git_date("2 YEARS AGO")
+    result2 = parse_git_date("2 years ago")
     assert result1 == result2
 
     result1 = parse_git_date("YESTERDAY")

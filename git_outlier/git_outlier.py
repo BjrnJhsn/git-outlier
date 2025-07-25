@@ -552,7 +552,14 @@ def parse_git_date(date_str: Optional[str], default_months_ago: int = 0) -> str:
     date_str = date_str.strip().lower()
 
     # Common git-style relative dates
-    if "months ago" in date_str or "month ago" in date_str:
+    if "years ago" in date_str or "year ago" in date_str:
+        try:
+            years = int(date_str.split()[0])
+            start = date.today() + relativedelta(years=-years)
+            return str(start)
+        except (ValueError, IndexError):
+            pass
+    elif "months ago" in date_str or "month ago" in date_str:
         try:
             months = int(date_str.split()[0])
             start = date.today() + relativedelta(months=-months)
@@ -581,6 +588,9 @@ def parse_git_date(date_str: Optional[str], default_months_ago: int = 0) -> str:
         return str(start)
     elif date_str in ["last month"]:
         start = date.today() + relativedelta(months=-1)
+        return str(start)
+    elif date_str in ["last year"]:
+        start = date.today() + relativedelta(years=-1)
         return str(start)
     elif date_str in ["today"]:
         return str(date.today())
