@@ -7,10 +7,11 @@ import argparse
 import sys
 from datetime import date
 from dateutil.relativedelta import relativedelta
+from typing import Dict, List, Tuple, Union, Any, Optional, Sequence
 import lizard
 
 
-def get_git_log_in_current_directory(start_date):
+def get_git_log_in_current_directory(start_date: str) -> str:
     pipe = subprocess.PIPE
 
     git_command = [
@@ -55,16 +56,16 @@ def get_git_log_in_current_directory(start_date):
     return stdoutput
 
 
-def parse_filename_from_log(line):
+def parse_filename_from_log(line: str) -> str:
     parts = line.split()
     if len(parts) >= 3:
         return parts[2]
     return ""
 
 
-def parse_churn_from_log(log):
-    churn = {}
-    file_names = []
+def parse_churn_from_log(log: str) -> Tuple[Dict[str, int], List[str]]:
+    churn: Dict[str, int] = {}
+    file_names: List[str] = []
     for line in log.splitlines():
         file_name = parse_filename_from_log(line)
         if file_name != "":
@@ -76,7 +77,9 @@ def parse_churn_from_log(log):
     return churn, file_names
 
 
-def sort_by_occurrence(dictionary_file_name_occurence):
+def sort_by_occurrence(
+    dictionary_file_name_occurence: Dict[str, int],
+) -> List[Tuple[str, int]]:
     return sorted(
         dictionary_file_name_occurence.items(),
         key=lambda kv: (kv[1], kv[0]),
@@ -85,21 +88,23 @@ def sort_by_occurrence(dictionary_file_name_occurence):
 
 
 def get_diagram_output(
-    points_to_plot, outliers_to_plot, max_xval, max_yval, x_axis, y_axis
-):
+    points_to_plot: Dict[int, Optional[List[int]]],
+    outliers_to_plot: Dict[int, Optional[List[int]]],
+    max_xval: int,
+    max_yval: int,
+    x_axis: str,
+    y_axis: str,
+) -> str:
     lines = [y_axis]
     for y_val in range(max_yval, -1, -1):
         line = "|"
-        if points_to_plot[y_val] or outliers_to_plot[y_val] is not None:
+        if points_to_plot[y_val] is not None or outliers_to_plot[y_val] is not None:
             for x_val in range(0, max_xval + 1, 1):
-                if (
-                    outliers_to_plot[y_val] is not None
-                    and x_val in outliers_to_plot[y_val]
-                ):
+                outlier_list = outliers_to_plot[y_val]
+                point_list = points_to_plot[y_val]
+                if outlier_list is not None and x_val in outlier_list:
                     line += "o"
-                elif (
-                    points_to_plot[y_val] is not None and x_val in points_to_plot[y_val]
-                ):
+                elif point_list is not None and x_val in point_list:
                     line += "."
                 else:
                     line += " "
@@ -108,7 +113,17 @@ def get_diagram_output(
     return "\n".join(lines)
 
 
-def convert_analysis_to_plot_data(data, x_label, y_label, max_x_output, max_y_output):
+def convert_analysis_to_plot_data(
+    data: Dict[str, Dict[str, int]],
+    x_label: str,
+    y_label: str,
+    max_x_output: int,
+    max_y_output: int,
+) -> Tuple[
+    Dict[int, Optional[List[int]]],
+    Dict[int, Optional[List[int]]],
+    Dict[str, Dict[str, int]],
+]:
     y_max = 0
     x_max = 0
     for value in data.values():
@@ -117,9 +132,9 @@ def convert_analysis_to_plot_data(data, x_label, y_label, max_x_output, max_y_ou
         if value[x_label] > x_max:
             x_max = value[x_label]
 
-    points_to_plot = dict()
-    outliers_to_plot = dict()
-    outliers = dict()
+    points_to_plot: Dict[int, Optional[List[int]]] = dict()
+    outliers_to_plot: Dict[int, Optional[List[int]]] = dict()
+    outliers: Dict[str, Dict[str, int]] = dict()
     for y_val in range(max_y_output, -1, -1):
         points_to_plot[y_val] = None
         outliers_to_plot[y_val] = None
@@ -134,22 +149,26 @@ def convert_analysis_to_plot_data(data, x_label, y_label, max_x_output, max_y_ou
             if outliers_to_plot[discretized_yval] is None:
                 outliers_to_plot[discretized_yval] = [discretized_xval]
             else:
-                if discretized_xval not in outliers_to_plot[discretized_yval]:
-                    outliers_to_plot[discretized_yval].append(discretized_xval)
+                outlier_list = outliers_to_plot[discretized_yval]
+                if outlier_list is not None and discretized_xval not in outlier_list:
+                    outlier_list.append(discretized_xval)
         else:
             if points_to_plot[discretized_yval] is None:
                 points_to_plot[discretized_yval] = [discretized_xval]
             else:
-                if discretized_xval not in points_to_plot[discretized_yval]:
-                    points_to_plot[discretized_yval].append(discretized_xval)
+                point_list = points_to_plot[discretized_yval]
+                if point_list is not None and discretized_xval not in point_list:
+                    point_list.append(discretized_xval)
 
     return points_to_plot, outliers_to_plot, outliers
 
 
-def filter_files_by_extension(file_list, endings):
+def filter_files_by_extension(
+    file_list: Sequence[Union[str, Tuple[str, int]]], endings: List[str]
+) -> List[Union[str, Tuple[str, int]]]:
     output_list = []
     for item in file_list:
-        if type(item) is list or type(item) is tuple:
+        if isinstance(item, tuple):
             filename, file_extension = os.path.splitext(item[0])
         else:
             filename, file_extension = os.path.splitext(item)
@@ -158,7 +177,9 @@ def filter_files_by_extension(file_list, endings):
     return output_list
 
 
-def get_complexity_for_file_list(file_list, complexity_metric):
+def get_complexity_for_file_list(
+    file_list: List[str], complexity_metric: str
+) -> Dict[str, int]:
     complexity = {}
     for file_name in file_list:
         if os.path.isfile(file_name):
@@ -174,11 +195,13 @@ def get_complexity_for_file_list(file_list, complexity_metric):
     return complexity
 
 
-def run_analyzer_on_file(file_name):
+def run_analyzer_on_file(file_name: str) -> Any:
     return lizard.analyze_file(file_name)
 
 
-def combine_churn_and_complexity(churn, complexity, filtered_file_names):
+def combine_churn_and_complexity(
+    churn: Dict[str, int], complexity: Dict[str, int], filtered_file_names: List[str]
+) -> Dict[str, Dict[str, int]]:
     result = {}
     for file_name in filtered_file_names:
         if file_name in churn and file_name in complexity:
@@ -189,45 +212,54 @@ def combine_churn_and_complexity(churn, complexity, filtered_file_names):
     return result
 
 
-def get_outliers_output(outliers):
+def get_outliers_output(outliers: Dict[str, Any]) -> str:
     if len(outliers) == 0:
         return "No outliers were found.\n"
     else:
         return "\n".join(outliers) + "\n"
 
 
-def big_separator():
+def big_separator() -> str:
     return "=" * 99
 
 
-def print_headline(headline):
+def print_headline(headline: str) -> None:
     print(f"\n{big_separator()}")
     print(f"=  {headline}")
     print(f"{big_separator()}\n")
 
 
-def print_subsection(subsection):
+def print_subsection(subsection: str) -> None:
     print(f"\n-= {subsection} =-")
 
 
-def print_big_separator():
+def print_big_separator() -> None:
     print(f"\n{big_separator()}")
 
 
-def print_small_separator():
+def print_small_separator() -> None:
     print("\n============================================================\n")
 
 
 def print_churn_and_complexity_outliers(
-    complexity, churn, filtered_file_names, complexity_metric, start_date
-):
+    complexity: Dict[str, int],
+    churn: Dict[str, int],
+    filtered_file_names: List[str],
+    complexity_metric: str,
+    start_date: str,
+) -> None:
     outlier_output, plot_output = prepare_outlier_analysis(
         complexity, complexity_metric, churn, filtered_file_names
     )
     print_plot_and_outliers(plot_output, outlier_output, start_date)
 
 
-def prepare_outlier_analysis(complexity, complexity_metric, churn, filtered_file_names):
+def prepare_outlier_analysis(
+    complexity: Dict[str, int],
+    complexity_metric: str,
+    churn: Dict[str, int],
+    filtered_file_names: List[str],
+) -> Tuple[str, str]:
     analysis_result = combine_churn_and_complexity(
         churn, complexity, filtered_file_names
     )
@@ -252,7 +284,9 @@ def prepare_outlier_analysis(complexity, complexity_metric, churn, filtered_file
     return outlier_output, plot_output
 
 
-def print_plot_and_outliers(diagram_output, outlier_output, start_date):
+def print_plot_and_outliers(
+    diagram_output: str, outlier_output: str, start_date: str
+) -> None:
     print_headline("Churn vs complexity outliers")
     print_subsection(
         "Plot of churn vs complexity for all files since "
@@ -265,8 +299,12 @@ def print_plot_and_outliers(diagram_output, outlier_output, start_date):
 
 
 def print_complexity_outliers(
-    complexity, complexity_metric, start_date, endings, top_complexity=10
-):
+    complexity: Dict[str, int],
+    complexity_metric: str,
+    start_date: str,
+    endings: List[str],
+    top_complexity: int = 10,
+) -> None:
     print_headline("Complexity outliers")
     print_subsection(
         "The top "
@@ -285,7 +323,9 @@ def print_complexity_outliers(
         print(f"{str(items[1]):11}{items[0]:10}")
 
 
-def print_churn_outliers(start_date, churn, endings, top_churners=10):
+def print_churn_outliers(
+    start_date: str, churn: Dict[str, int], endings: List[str], top_churners: int = 10
+) -> None:
     print_headline("Churn outliers")
     print_subsection(
         "The top "
@@ -302,18 +342,20 @@ def print_churn_outliers(start_date, churn, endings, top_churners=10):
         print(f"{str(items[1]):8}{items[0]:10}")
 
 
-def get_git_and_complexity_data(endings, complexity_metric, start_date):
+def get_git_and_complexity_data(
+    endings: List[str], complexity_metric: str, start_date: str
+) -> Tuple[Dict[str, int], Dict[str, int], List[str]]:
     all_of_it = get_git_log_in_current_directory(start_date)
     print("Retrieving git log...")
     churn, file_names = parse_churn_from_log(all_of_it)
     filtered_file_names = filter_files_by_extension(file_names, endings)
     print("Computing complexity...")
-    complexity = get_complexity_for_file_list(filtered_file_names, complexity_metric)
+    complexity = get_complexity_for_file_list(filtered_file_names, complexity_metric)  # type: ignore
     print(f"{len(filtered_file_names)} files analyzed.")
-    return complexity, churn, filtered_file_names
+    return complexity, churn, filtered_file_names  # type: ignore
 
 
-def get_supported_languages():
+def get_supported_languages() -> Dict[str, List[str]]:
     return {
         "c": [".c", ".h"],
         "cpp": [".cpp", ".cc", ".mm", ".cxx", ".h", ".hpp"],
@@ -344,7 +386,7 @@ def get_supported_languages():
     }
 
 
-def get_file_endings_for_languages(languages):
+def get_file_endings_for_languages(languages: Union[str, List[str]]) -> List[str]:
     supported_languages = get_supported_languages()
     language_file_endings = []
     if not isinstance(languages, list):
@@ -355,7 +397,7 @@ def get_file_endings_for_languages(languages):
     return language_file_endings
 
 
-def parse_arguments(incoming):
+def parse_arguments(incoming: List[str]) -> Any:
     parser = argparse.ArgumentParser(
         description="""Analyze a source directory that uses git as version handling system.
         The source files are analyzed for different type of outliers and these outliers can 
@@ -443,7 +485,7 @@ def parse_arguments(incoming):
     return args
 
 
-def change_directory(path_to_switch):
+def change_directory(path_to_switch: str) -> str:
     startup_path = os.getcwd()
     try:
         expanded_path = os.path.expanduser(path_to_switch)
@@ -457,7 +499,7 @@ def change_directory(path_to_switch):
     return startup_path
 
 
-def restore_directory(path):
+def restore_directory(path: str) -> None:
     try:
         os.chdir(path)
     except OSError as err:
@@ -468,7 +510,7 @@ def restore_directory(path):
         sys.exit(1)
 
 
-def get_start_date(span_in_months):
+def get_start_date(span_in_months: Union[int, List[int]]) -> str:
     today = date.today()
     if isinstance(span_in_months, list):
         span_in_months = span_in_months[0]
@@ -477,7 +519,7 @@ def get_start_date(span_in_months):
     return str(start)
 
 
-def main():
+def main() -> None:
 
     options = parse_arguments(sys.argv[1:])
     logging.basicConfig(
