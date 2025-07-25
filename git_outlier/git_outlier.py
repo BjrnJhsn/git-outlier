@@ -33,9 +33,9 @@ def get_git_log_in_current_directory(start_date):
     except OSError as err:
         logging.error("OS error: {0}".format(err))
         sys.exit(1)
-    except:
-        logging.error("Unexpected error: ", sys.exc_info()[0])
-        logging.error("Trying to execute the following subprocess: " + str(git_command))
+    except Exception as err:
+        logging.error("Unexpected error: %s", err)
+        logging.error("Trying to execute the following subprocess: %s", git_command)
         logging.error("Git problem, exiting...")
         sys.exit(1)
 
@@ -140,7 +140,7 @@ def convert_analysis_to_plot_data(data, x_label, y_label, max_x_output, max_y_ou
 def keep_only_files_with_correct_endings(file_list, endings):
     output_list = []
     for item in file_list:
-        if type(item) is file_list or type(item) is tuple:
+        if type(item) is list or type(item) is tuple:
             filename, file_extension = os.path.splitext(item[0])
         else:
             filename, file_extension = os.path.splitext(item)
@@ -212,7 +212,7 @@ def print_big_separator():
 
 
 def print_small_separator():
-    print("\n============================================================n")
+    print("\n============================================================\n")
 
 
 def print_churn_and_complexity_outliers(
@@ -414,7 +414,7 @@ def parse_arguments(incoming):
 
     args = parser.parse_args(incoming)
 
-    if args.span and args.span < 1 or args.span > 100:
+    if args.span and (args.span < 1 or args.span > 100):
         parser.error("Span must be in the range (1,100).")
 
     ok_metrics = ["NLOC", "CCN"]
@@ -428,7 +428,6 @@ def parse_arguments(incoming):
     supported_languages = get_supported_languages()
     supported_languages_list = [*supported_languages]
 
-    # Need to fix :-)
     if args.languages is None:
         args.languages = supported_languages_list
 
@@ -451,8 +450,8 @@ def switch_to_correct_path_and_save_current(path_to_switch):
     except OSError as err:
         logging.error("OS error: {0}".format(err))
         sys.exit(1)
-    except:
-        logging.error("Unexpected error:", sys.exc_info()[0])
+    except Exception as err:
+        logging.error("Unexpected error: %s", err)
         sys.exit(1)
     return startup_path
 
@@ -463,8 +462,8 @@ def switch_back_original_directory(path):
     except OSError as err:
         logging.error("OS error: {0}".format(err))
         sys.exit(1)
-    except:
-        logging.error("Unexpected error:", sys.exc_info()[0])
+    except Exception as err:
+        logging.error("Unexpected error: %s", err)
         sys.exit(1)
 
 
