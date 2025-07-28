@@ -34,6 +34,19 @@ types-python-dateutil = "*"
 [tool.poetry.scripts]
 git-outlier = "git_outlier.git_outlier:main"
 
+[tool.flake8]
+exclude = [
+    ".venv",
+    "venv",
+    ".git",
+    "__pycache__",
+    "*.egg-info",
+    "build",
+    "dist",
+    "htmlcov",
+]
+max-line-length = 88
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
