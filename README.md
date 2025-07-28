@@ -162,5 +162,8 @@ Supported languages
 
 The code complexity is computed using [lizard](http://www.lizard.ws/).
 ## References
-The idea comes from Michael Feathers' article [Getting Empirical about Refactoring](https://www.agileconnection.com/article/getting-empirical-about-refactoring).
+
+The methodology is based on Michael Feathers' article [Getting Empirical about Refactoring](https://www.agileconnection.com/article/getting-empirical-about-refactoring), which advocates using version control data to make informed refactoring decisions.
+
+Feathers' key insight: plotting **churn** (how often files change) vs **complexity** reveals four zones, with the upper-right quadrant (high churn + high complexity) containing the most critical refactoring candidates - files that are both complex and frequently modified.
 
