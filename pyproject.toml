@@ -1,6 +1,39 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+[tool.poetry]
+name = "git-outlier"
+version = "0.0.2"
+description = "Data-driven screening to find source code that need refactoring"
+authors = ["Björn Johansson <bjorn.ki.johansson@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/BjrnJhsn/git-outlier"
+repository = "https://github.com/BjrnJhsn/git-outlier"
+keywords = ["git", "refactoring", "complexity", "code-quality"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Topic :: Software Development",
 ]
-build-backend = "setuptools.build_meta"
+packages = [{include = "git_outlier"}]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+python-dateutil = "*"
+lizard = ">=1.17.31"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+pytest-cov = "*"
+black = "*"
+flake8 = "*"
+mypy = "*"
+bandit = "*"
+types-python-dateutil = "*"
+
+[tool.poetry.scripts]
+git-outlier = "git_outlier.git_outlier:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -37,9 +37,25 @@ Files in the high churn, high complexity zone change frequently AND are complex,
 
 ## Installation
 
+### From PyPI (Recommended)
 Install from PyPI to use as a git add-on:
 ```bash
 [sudo] pip install git-outlier
+```
+
+### For Development
+If you want to contribute or modify the code:
+```bash
+# Clone the repository
+git clone https://github.com/BjrnJhsn/git-outlier.git
+cd git-outlier
+
+# Install with Poetry (recommended)
+poetry install
+poetry shell
+
+# Or install with pip
+pip install -e .
 ```
 
 Once installed, the tool is available as `git outlier` (note the space) when run from within a git repository. You can also invoke it directly as `git-outlier` (with hyphen) from anywhere.
