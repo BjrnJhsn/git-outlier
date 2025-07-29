@@ -18,12 +18,14 @@ classifiers = [
 packages = [{include = "git_outlier"}]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.11"
 python-dateutil = "*"
 lizard = ">=1.17.31"
+gitpython = ">=3.1.32"
+setuptools = ">=78.1.1"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "*"
+pytest = ">=7.2.0"
 pytest-cov = "*"
 black = "*"
 flake8 = "*"
